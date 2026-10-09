@@ -1,0 +1,8 @@
+{"v":1,"type":"handshake","instrument_id":"sim-01","request_id":"hello-1"}
+{"v":1,"type":"subscribe","instrument_id":"sim-01","boot_id":"observed-boot-id","request_id":"subscribe-1"}
+{"v":1,"type":"start","instrument_id":"sim-01","boot_id":"observed-boot-id","request_id":"start-1","command_id":"start-1","run_id":"run-1","recipe":{"sample_rate_hz":50,"seed":7,"steps":[{"setpoint":0.8,"duration_ms":1000}]}}
+{"v":1,"type":"response","instrument_id":"sim-01","boot_id":"observed-boot-id","request_id":"start-1","ok":true,"applied":true,"status":{"state":"RUNNING","run_id":"run-1","final_seq":-1,"output":0.8,"reason":"","telemetry_ready":true,"queued_frames":0}}
+{"v":1,"type":"samples","instrument_id":"sim-01","boot_id":"observed-boot-id","run_id":"run-1","samples":[{"seq":0,"logical_s":0.02,"setpoint":0.8,"response":0.0114,"reference":0.0321,"source_utc":"2026-01-01T00:00:00.020000Z","device_elapsed_s":10.02}]}
+{"v":1,"type":"stop","instrument_id":"sim-01","boot_id":"observed-boot-id","request_id":"stop-1","command_id":"stop-1","run_id":"run-1"}
+{"v":1,"type":"response","instrument_id":"sim-01","boot_id":"observed-boot-id","request_id":"stop-1","ok":true,"applied":true,"status":{"state":"STOPPED","run_id":"run-1","final_seq":0,"output":0.0,"reason":"operator_stop","telemetry_ready":true,"queued_frames":0}}
+{"v":1,"type":"response","instrument_id":"sim-01","boot_id":"observed-boot-id","request_id":"late-stop","ok":false,"error":{"code":"STALE_RUN","message":"Stop does not target the current run"}}

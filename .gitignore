@@ -1,0 +1,30 @@
+# Local secrets and private inputs
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+ExperimentLabCodexPrompt.txt
+# Dependencies and generated files
+node_modules/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+coverage/
+test-results/
+playwright-report/
+.local/
+*.log
+*.csv
+*.dump
+*.sqlite*
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
