@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import signal
 import time
 from contextlib import asynccontextmanager, suppress
 from uuid import UUID
@@ -21,6 +22,16 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 store = Store(os.environ.get("DATABASE_URL", ""))
 orchestrator = Orchestrator(store)
 access = AccessSettings.from_environment()
+
+
+async def maintain_database_session():
+    while True:
+        # A session advisory lock needs the same live connection. Neon suspends
+        # idle compute even with a connection open, so renew activity while this
+        # hosted controller is running. Render can still sleep on HTTP inactivity.
+        async with asyncio.timeout(10):
+            await store.rows("SELECT 1")
+        await asyncio.sleep(20)
 
 
 async def own_and_run(app: FastAPI):
@@ -45,7 +56,20 @@ async def own_and_run(app: FastAPI):
             app.state.startup_healthy = False
             logging.error('{"event":"startup_failed","error_type":"%s"}', type(exc).__name__)
             return
-    await orchestrator.run()
+    if access.mode != "hosted":
+        await orchestrator.run()
+        return
+    try:
+        async with asyncio.TaskGroup() as tasks:
+            tasks.create_task(orchestrator.run())
+            tasks.create_task(maintain_database_session())
+    except Exception as exc:
+        # Losing this connection also loses exclusive ownership. Shut down both
+        # processes through the hosted supervisor; a fresh boot reacquires the
+        # lock rather than continuing to control with an unowned connection.
+        logging.error('{"event":"database_session_failed","error_type":"%s"}', type(exc).__name__)
+        app.state.ready = app.state.startup_healthy = False
+        os.kill(os.getpid(), signal.SIGTERM)
 
 
 @asynccontextmanager

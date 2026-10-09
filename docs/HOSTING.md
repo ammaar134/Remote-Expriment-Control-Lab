@@ -36,9 +36,10 @@ Verified provider documentation on 2026-10-10:
   minute to wake. Local container files are ephemeral. Free Render PostgreSQL
   expires after 30 days, so this configuration uses Neon instead.
 - [Neon Free](https://neon.com/blog/neon-free-plan-1-gb-per-project): 1 GB per project
-  and 100 CU-hours per month. Our persistent controller connection and polling can
-  keep compute active while the app is awake. This is a small personal demo, not
-  an unlimited always-on service. Watch the provider dashboards for actual usage.
+  and 100 CU-hours per month. An internal database heartbeat keeps the ownership
+  session and compute active while the Render container is awake. This is a small
+  personal demo, not an unlimited always-on service. Watch the provider dashboards
+  for actual usage.
 
 Use free plans without adding a payment method or enabling paid upgrades. Render
 can suspend services for exhausted free quotas or excessive external traffic.
@@ -102,6 +103,14 @@ owns restart. A new C++ boot does not restart an old experiment. Completed saved
 runs survive. Interrupted runs retain the Phase 1 partial/unknown limitations.
 Cloud history begins empty; no local database upload is part of deployment.
 
+The hosted API checks its existing database ownership connection every 20
+seconds, including before any experiment has started. This prevents Neon's idle
+suspension from closing the session while the app is awake. It sends no HTTP
+keepalive traffic to Render. If the connection fails or its check exceeds ten
+seconds, the API closes instrument control and exits through the supervisor.
+The next container boot must acquire ownership again; a closed connection cannot
+leave a permanently unusable signed-in UI. Existing saved history is preserved.
+
 ## Reproducible checks
 
 ```sh
@@ -112,7 +121,8 @@ python3 tests/hosted_smoke.py
 The test creates its own disposable PostgreSQL and two app containers, verifies
 authentication and private C++ ports, completes and stops real experiments,
 checks exclusive ownership while containers overlap, verifies saved history
-after replacement, and checks whole-container shutdown on child failure. It
+after replacement, survives a real 45-second PostgreSQL idle-session timeout,
+and checks whole-container shutdown on database-session or child failure. It
 removes only those test resources. Local Compose history is untouched.
 
 `tests/api_smoke.py` can also test a live deployment using process environment

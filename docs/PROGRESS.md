@@ -21,7 +21,7 @@
 - Render service srv-db4jf9mi0phs73ctof0g is Free, Singapore, one Docker instance,
   automatic deployment off. Neon Free project young-hall-53222910 is Singapore,
   PostgreSQL 17, database experiment_lab, fixed 0.25 CU. Use the existing resources.
-- Deployed application commit: 201f5d0b49f4f73b8babe34ab0b9bbf543c6d83d.
+- Initial application commit: 201f5d0b49f4f73b8babe34ab0b9bbf543c6d83d.
   Exact-commit Linux CI passed:
   https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/37970946408.
 - Direct/unpooled DATABASE_URL with full TLS verification is stored only in Render.
@@ -43,6 +43,25 @@
 - Free-plan limits: Render can sleep/restart; Neon has a monthly compute allowance.
   Platform interruption can interrupt a run; Phase 2 recovery is not implemented.
   No paid resources or upgrades were created.
+
+## Hosted idle database fix (2026-10-10, Pacific/Auckland)
+
+- The signed-in browser reported an interrupted lab connection and disabled Start.
+  Render logs showed `/api/device` returning 200 but `/api/runs` returning 503.
+  Neon had suspended idle compute, closing the API's database ownership session.
+- The hosted controller now checks its existing connection every 20 seconds,
+  with a ten-second deadline. Connection failure cancels instrument control and
+  exits through the supervisor; a fresh container must reacquire ownership.
+  Local Compose behavior is unchanged. This is a Phase 1 hosting correction;
+  Phase 2 recovery remains paused.
+- Local verification passed: 18 backend tests, Ruff, mypy, hosted image build,
+  and the real authenticated hosted smoke test. The latter survives a 45-second
+  PostgreSQL idle-session timeout with no API traffic for 50 seconds, records
+  completed/stopped experiments, deliberately terminates its disposable database
+  owner session, and verifies unchanged saved history after restarting.
+  Container overlap/ownership, access boundaries and child shutdown also passed.
+- Cloud deployment and verification of this fix are pending. The four existing
+  cloud recordings still have 462 samples with unchanged sequence bounds.
 
 ## Latest validation (2026-10-10, Pacific/Auckland)
 

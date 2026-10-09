@@ -68,6 +68,9 @@ def main():
             "--env",
             "POSTGRES_DB=lab",
             "postgres:17-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+            "postgres",
+            "-c",
+            "idle_session_timeout=45s",
             env=environment,
         )
         containers.append(database)
@@ -121,6 +124,16 @@ def main():
         assert request(base, "/api/runs", {"Host": "lab.example.com"})[0] == 403
         assert request(base, "/", api_smoke.HEADERS)[0] == 200
         eventually(lambda: api_smoke.call("/health")["instrument_connected"])
+        idle_boot = api_smoke.call("/device")["boot_id"]
+        # No API/database traffic for longer than the server's idle-session
+        # timeout. This reproduces serverless suspension without a five-minute
+        # cloud test: the internal heartbeat must preserve the owner session.
+        print("Checking an idle hosted session beyond PostgreSQL's 45-second timeout...", flush=True)
+        time.sleep(50)
+        assert api_smoke.call("/health")["database"] == "ready"
+        assert api_smoke.call("/device")["boot_id"] == idle_boot
+        assert docker("inspect", "--format", "{{.State.Running}}", first) == "true"
+        print("PASS: idle database session remains ready without a container restart.", flush=True)
         api_smoke.main()
         saved = api_smoke.call("/runs")
         assert len(saved) == 2
@@ -158,6 +171,35 @@ def main():
         assert api_smoke.call("/runs") == saved, "Redeploy changed saved history"
         api_smoke.main()
         assert len(api_smoke.call("/runs")) == 4
+        preserved = api_smoke.call("/runs")
+        # A broken owner connection must exit the whole hosted service instead
+        # of leaving a signed-in UI attached to a permanently unusable database.
+        assert docker(
+            "exec",
+            database,
+            "psql",
+            "-U",
+            "lab",
+            "-d",
+            "lab",
+            "-Atc",
+            "SELECT pg_terminate_backend(pid) FROM pg_locks "
+            "WHERE locktype='advisory' AND objid=134001",
+        ) == "t"
+        eventually(
+            lambda: docker("inspect", "--format", "{{.State.Running}}", second) == "false", 35
+        )
+        assert docker("inspect", "--format", "{{.State.ExitCode}}", second) == "1"
+        docker("start", second)
+        replacement = "http://" + docker("port", second, "8000/tcp").splitlines()[0]
+        api_smoke.BASE = replacement
+        eventually(lambda: request(replacement, "/healthz")[0] == 200)
+        eventually(lambda: api_smoke.call("/health")["instrument_connected"])
+        assert api_smoke.call("/runs") == preserved, "Database-session restart changed saved history"
+        print(
+            "PASS: lost database ownership shuts down the service; a fresh boot preserves history.",
+            flush=True,
+        )
         # A child failure exits the whole service; the provider owns container restart.
         docker(
             "exec",
@@ -171,7 +213,8 @@ def main():
         eventually(lambda: docker("inspect", "--format", "{{.State.Running}}", second) == "false")
         assert docker("inspect", "--format", "{{.State.ExitCode}}", second) == "1"
         print("PASS: authenticated cloud image, HTTP/origin guards, private C++ ports, two real runs,")
-        print("      exclusive owner handoff, persistent review after replacement, child failure shutdown.")
+        print("      idle session renewal, owner-loss shutdown, exclusive owner handoff,")
+        print("      persistent review after replacement, child failure shutdown.")
     finally:
         for container in reversed(containers):
             docker("rm", "--force", "--volumes", container)
