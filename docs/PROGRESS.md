@@ -53,9 +53,16 @@ loading optimization remains for Phase 3. Local browser validation uses Edge.
   Data: complete. Unknown final sequence must not invent a missing count.
 - The user delegated this presentation decision; it is implemented in Status and
   covered by behavior tests. No claim about the user's proficiency is implied.
-- Remote laptop preview is delivered in-chat as read-only captured application
-  screens. It does not depend on the laptop reaching the host's loopback address
-  and does not expose the instrument controls publicly.
+- The sequence-99 example above is hypothetical, not an observed lost sample.
+  A follow-up database audit found all 18 existing runs complete. A fresh
+  `py tests/api_smoke.py` passed; the subsequent audit found 20 complete runs and
+  zero inconsistencies between sample counts, bounds, persisted and final sequence.
+- The user reported that the inline preview did not load on their remote laptop.
+  A private ChatGPT Page now stores the read-only captured preview and native
+  Configure/Review screenshots as a fallback. Cloud content and file access were
+  verified; the host browser requires ChatGPT sign-in, so the laptop rendering
+  check is pending. The private Page link is kept in the chat, not this public repo.
+  Instrument controls remain local-only. Phase 2 has not started.
 
 ## Reproduce
 
