@@ -7,6 +7,21 @@ only the HTTP service is reachable through the platform's HTTPS edge. PostgreSQL
 runs separately on Neon so container sleep, replacement and restarts preserve
 completed run history. Local Compose remains the default development path.
 
+## Live instance
+
+Open [Remote Experiment Control Lab](https://remote-experiment-control-lab.onrender.com).
+Sign in as **operator**. Retrieve the current **LAB_PASSWORD** from the
+[Render service](https://dashboard.render.com/web/srv-db4jf9mi0phs73ctof0g)'s
+Environment page and keep it in a password manager. Never send it in chat or
+include it in a URL. The instance uses Render Free and Neon Free in Singapore.
+
+Verified on 2026-10-10 (Pacific/Auckland) against deployed application commit
+`201f5d0b49f4f73b8babe34ab0b9bbf543c6d83d`: authenticated access, real API/C++
+acquisition, 100 ordered durable samples, confirmed Stop, live browser refresh,
+saved Review, and desktop/mobile layouts. Four synthetic runs start the cloud
+history. A real redeploy preserved their 462 samples and recording statuses.
+Automatic deployment is off; Phase 2 remains paused.
+
 ## Free hosting choice
 
 Use one **Render Free web service** and a **Neon Free PostgreSQL project**, both in

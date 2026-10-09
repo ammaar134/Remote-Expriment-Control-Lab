@@ -3,9 +3,9 @@
 - Last working milestone: Phase 1 single-device workflow through React, FastAPI,
   the separate C++ simulator and PostgreSQL. Complete and stopped runs demonstrated.
 - Current gate: Phase 1 discussion completed; wait for an explicit request to start
-  Phase 2. Current prerequisite: deploy the real app to free cloud hosting so it
-  can be operated from another computer. A document/screenshots preview was not
-  sufficient. Fast pace requested; no interview scheduling needed.
+  Phase 2. The real app is deployed on free cloud hosting so it
+  can be operated from another computer. The live workflow is verified; the earlier
+  document preview was insufficient. Fast pace requested; no interview scheduling.
 - Repository: public ammaar134/Remote-Expriment-Control-Lab; local codex/phase-1.
   Initial publication to main approved. Verify the current remote commit and its
   GitHub Actions result when resuming; do not infer remote CI from local checks.
@@ -15,28 +15,34 @@
 - Runtime: http://127.0.0.1:8000 via Docker Compose; database history is persistent.
   Docker startup was restored with reversible local socket-directory backups.
 
-## Cloud prerequisite
+## Cloud deployment
 
-- User authorized choosing free hosting and installed the Render and Neon plugins.
-  No cloud resources have been created yet. Their service tools were not exposed
-  to the active session immediately after installation; check availability again
-  before provisioning. Never ask for credentials in chat.
-- Prepared `render.yaml` for a Free Render web container and separate Neon Free
-  PostgreSQL. Deployment must use a direct/unpooled TLS database connection.
-- Hosted mode requires single-user Basic authentication, HTTPS, allowed origin,
-  and one API worker. C++ binds loopback within the combined cloud container.
-- A rolling replacement waits for the old PostgreSQL owner lock while the UI
-  can load; API controls return 503 until ownership is acquired. Tests cover
-  overlap, preserving completed history, and terminating after a child failure.
-- Local checks passed: 18 Python tests with real PostgreSQL, Ruff and mypy;
-  release C++ build/CTest; cloud image smoke with two complete/stopped pairs,
-  auth/HTTP guards, private instrument ports, owner handoff and preserved runs.
-  Starlette reports a test-client httpx deprecation warning; assertions pass.
-- Latest published checkpoint 3db1f40 passed all Linux CI checks:
-  https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/37969122651.
-  Cloud changes require their own exact-commit CI result after publication.
-- Next: provision free services, configure secrets through connected providers,
-  verify the actual HTTPS app and provide its URL. See docs/HOSTING.md.
+- Live URL: https://remote-experiment-control-lab.onrender.com.
+- Render service srv-db4jf9mi0phs73ctof0g is Free, Singapore, one Docker instance,
+  automatic deployment off. Neon Free project young-hall-53222910 is Singapore,
+  PostgreSQL 17, database experiment_lab, fixed 0.25 CU. Use the existing resources.
+- Deployed application commit: 201f5d0b49f4f73b8babe34ab0b9bbf543c6d83d.
+  Exact-commit Linux CI passed:
+  https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/37970946408.
+- Direct/unpooled DATABASE_URL with full TLS verification is stored only in Render.
+  Sign in as operator using LAB_PASSWORD from the service's Environment page.
+  Do not print secrets or request them in chat. See docs/HOSTING.md.
+- Verified the real HTTPS deployment on 2026-10-10 (Pacific/Auckland):
+  authenticated API/database ready and C++ connected; signed-out UI/API/docs denied;
+  cross-origin mutations denied; API smoke passed with 100 ordered durable samples,
+  EMA, immutable snapshot, duplicate/conflicting Start and confirmed/repeated Stop.
+- Playwright through the real URL passed Configure -> Start -> live samples ->
+  refresh -> complete saved Review -> confirmed Stop. Desktop and 390-pixel mobile
+  screenshots were visually checked. Four synthetic runs (two completed, two
+  stopped) have complete recordings, with 462 samples in total.
+- Final redeploy dep-db4jopss728c73fj042g is live. A new C++ boot was observed;
+  authenticated history remained readable with identical sample counts/bounds.
+  Completed and stopped API-smoke runs survived with 100 and 29 ordered samples.
+- Cloud began with empty history; no local database history was uploaded.
+  Local Compose services and secrets were preserved. Phase 2 remains paused.
+- Free-plan limits: Render can sleep/restart; Neon has a monthly compute allowance.
+  Platform interruption can interrupt a run; Phase 2 recovery is not implemented.
+  No paid resources or upgrades were created.
 
 ## Latest validation (2026-10-10, Pacific/Auckland)
 
@@ -110,11 +116,11 @@ checks require stopping the API to release its controlling connection.
 
 ## Next and limits
 
-- Next: finish authenticated free cloud deployment, then Phase 2 when requested.
+- Next: Phase 2 only when explicitly requested; cloud deployment is complete.
   Publishing target main is approved.
 - Phase 2 adds durable telemetry acknowledgements/retransmission and broad failure
   reconciliation/injection. A dropped Phase 1 stream cannot recover missing data.
 - CSV/replay, complete recipe management and two-device timing are later phases.
-- One controlling API worker; cloud deployment pending; repository license undecided.
+- One controlling API worker; cloud deployment verified; repository license undecided.
 - Pointers: docs/ARCHITECTURE.md, docs/PROTOCOL.md, docs/DATA.md,
   instrument/src/engine.cpp, backend/lab/orchestrator.py, frontend/src/App.tsx.

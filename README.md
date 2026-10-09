@@ -6,6 +6,19 @@ measurements, confirm Stop, and inspect the immutable saved run.
 
 ![Configure a simulated experiment](docs/screenshots/configure.png)
 
+## Try the live app
+
+Open [Remote Experiment Control Lab](https://remote-experiment-control-lab.onrender.com).
+Sign in as **operator** using **LAB_PASSWORD** from the Render service's
+Environment page; see [sign-in and hosting details](docs/HOSTING.md).
+Configure a short recipe, Start, watch Monitor, then review the saved run.
+Stop waits for the C++ simulator's actual confirmation.
+
+The app runs on Render Free with persistent PostgreSQL on Neon Free.
+It can take roughly a minute to wake after inactivity. Saved history survives
+container replacement. Platform restarts can interrupt active experiments;
+Phase 2 recovery remains future work.
+
 ## Run locally
 
 Requires Docker with Linux containers and Compose, plus Python 3.12+ for the small
