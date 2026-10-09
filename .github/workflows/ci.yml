@@ -1,0 +1,56 @@
+name: Build and verify
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.21.0
+      - name: Scan full history for secrets
+        run: docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --redact --no-banner
+      - name: Configure local test credentials
+        run: python3 scripts/setup.py
+      - name: Build the engine and start PostgreSQL
+        run: docker compose up -d --build --wait db instrument
+      - name: Real socket contract and backpressure
+        run: |
+          docker run --rm --network experiment-lab_default -v "$PWD/tests:/tests:ro" python:3.12-slim-bookworm python /tests/protocol_smoke.py
+          docker run --rm --network experiment-lab_default -v "$PWD/tests:/tests:ro" python:3.12-slim-bookworm python /tests/backpressure_smoke.py
+      - name: C++ sanitizers
+        run: |
+          docker build --target build -f instrument/Dockerfile -t lab-cpp-check .
+          docker run --rm lab-cpp-check sh -c 'cmake -S . -B checked -DLAB_SANITIZERS=ON && cmake --build checked -j2 && ctest --test-dir checked --output-on-failure'
+      - name: Python tests, types and formatting
+        run: |
+          docker compose build backend-test
+          docker compose run --rm backend-test sh -c 'pytest -q && ruff check . && ruff format --check . && mypy lab'
+      - name: Frontend build and behavior
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run format:check
+          npm run build
+          npm test
+          npm audit --audit-level=high
+      - name: Full application and API integration
+        run: |
+          docker compose up -d --build --wait lab
+          python3 tests/api_smoke.py
+      - name: Real browser flow
+        working-directory: frontend
+        run: |
+          npx playwright install --with-deps chromium
+          npm run e2e
+      - name: Stop services, preserving logs on the runner
+        if: always()
+        run: docker compose down

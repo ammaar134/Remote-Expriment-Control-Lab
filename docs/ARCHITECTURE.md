@@ -1,6 +1,7 @@
 # Architecture decisions - Phase 1
 
-These are the implementation contract, not claims that the code already exists.
+These decisions describe the implemented Phase 1 slice. See PROGRESS.md for
+validation results and the boundary of the current milestone.
 
 ## Ownership and data flow
 

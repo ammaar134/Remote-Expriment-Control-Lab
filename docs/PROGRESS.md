@@ -1,23 +1,67 @@
 # Progress
 
-- Last working milestone: C++ simulator and real TCP contract tests.
-- Current phase: Phase 1; the full local slice is implemented and under final review.
-- Specification: adopted project brief; fast pace, short teaching checkpoints.
-- Repository: public ammaar134/Remote-Expriment-Control-Lab; branch codex/phase-1.
-- Current gate: demonstrate completed/stopped runs, finish checks, commit; confirm
-  the initial push branch before publishing.
-- Verified: CMake build/CTest; tests/protocol_smoke.py against real sockets;
-  React type/production build and three frontend behavior tests;
-  tests/api_smoke.py (100 durable samples, EMA, idempotent Start, confirmed Stop);
-  Playwright browser flow with refresh, saved review and narrow viewport.
-- PostgreSQL tests passed; Python lint found five formatting issues being repaired.
-  Python type checks and final secret scan remain.
-- Runtime: Docker engine restored with reversible socket-directory backups.
-  App runs at http://127.0.0.1:8000 via docker compose.
-- Commands: docker compose up -d --build; py tests/api_smoke.py;
-  docker compose run --rm backend-test; frontend npm run build / npm test.
-- Next: finish Phase 1 checks and short architecture walkthrough; Phase 2 is gated.
-- Limitations: no retransmission/durable telemetry ACK, CSV/replay or two-device
-  timing yet; one API worker; license undecided; no push or CI run yet.
-- Pointers: docs/ARCHITECTURE.md, docs/PROTOCOL.md, instrument/src/engine.cpp,
-  backend/lab/orchestrator.py, frontend/src/App.tsx, docs/screenshots/.
+- Last working milestone: Phase 1 single-device workflow through React, FastAPI,
+  the separate C++ simulator and PostgreSQL. Complete and stopped runs demonstrated.
+- Current gate: Phase 1 checkpoint; wait for the user's discussion response before
+  Phase 2. Fast pace requested; no interview scheduling needed.
+- Repository: public ammaar134/Remote-Expriment-Control-Lab; local codex/phase-1.
+  Initial push branch still needs approval. No push or remote CI run yet.
+- Commits: 7e5716b contains the independently tested engine/protocol slice. The
+  application checkpoint is the commit containing this record, titled
+  "Add persisted experiment workflows and operator console".
+- Runtime: http://127.0.0.1:8000 via Docker Compose; database history is persistent.
+  Docker startup was restored with reversible local socket-directory backups.
+
+## Latest validation (2026-10-09)
+
+Passed against the Phase 1 implementation:
+
+- C++ build and six doctest cases, also under address/undefined-behavior sanitizers.
+- Real TCP framing, duplicate/conflicting commands, stale/repeated Stop,
+  disconnect and oversized-frame checks.
+- Real telemetry backlog: Stop within the test's one-second deadline; bounded
+  queue overflow faulted with simulated output zero.
+- Four Python tests, including real PostgreSQL immutability/uniqueness constraints
+  and terminal-state-before-final-data reconciliation; Ruff and mypy passed.
+- React/TypeScript production build, three behavior tests and Prettier checks.
+- API smoke: complete run with 100 durable ordered samples, EMA verification,
+  duplicate/conflicting Start and a confirmed stopped run.
+- Playwright using installed Edge: live acquisition, browser refresh, saved review,
+  confirmed Stop and desktop/mobile layouts. Genuine screenshots visually checked.
+- npm audit: zero reported vulnerabilities. Staged secret scanning required before
+  each commit, then full-history scanning before the initial public push.
+
+No failing functional checks remain. Production frontend build reports a roughly
+603 kB uncompressed JavaScript chunk; loading optimization remains for Phase 3.
+Remote Linux CI is configured but has not run. Windows native-browser automation
+was unavailable; the Playwright/Edge test provided actual browser validation.
+
+## Reproduce
+
+From the repository root (PowerShell; Docker running):
+
+```powershell
+py scripts/setup.py
+docker compose up -d --build --wait
+docker compose build backend-test
+docker compose run --rm backend-test sh -c 'pytest -q && ruff check . && ruff format --check . && mypy lab'
+py tests/api_smoke.py
+$env:PLAYWRIGHT_CHANNEL='msedge'
+node frontend/node_modules/@playwright/test/cli.js test --config frontend/playwright.config.ts
+```
+
+Frontend checks from `frontend/`: `npm ci`, `npm run format:check`,
+`npm run build`, `npm test`, `npm audit --audit-level=high`. Use Node 24.21.0.
+See docs/TESTING.md for exact standalone TCP and sanitizer commands; those socket
+checks require stopping the API to release its controlling connection.
+
+## Next and limits
+
+- Next: trace Start and one sample, discuss execution versus recording completion,
+  and select the initial public push branch. Phase 2 follows only after the gate.
+- Phase 2 adds durable telemetry acknowledgements/retransmission and broad failure
+  reconciliation/injection. A dropped Phase 1 stream cannot recover missing data.
+- CSV/replay, complete recipe management and two-device timing are later phases.
+- One controlling API worker; local-only operation; repository license undecided.
+- Pointers: docs/ARCHITECTURE.md, docs/PROTOCOL.md, docs/DATA.md,
+  instrument/src/engine.cpp, backend/lab/orchestrator.py, frontend/src/App.tsx.

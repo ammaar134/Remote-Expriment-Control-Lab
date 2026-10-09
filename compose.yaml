@@ -1,0 +1,63 @@
+name: experiment-lab
+services:
+  db:
+    image: postgres:17-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+    environment:
+      POSTGRES_USER: lab
+      POSTGRES_DB: lab
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run python scripts/setup.py first}
+    volumes:
+      - lab-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lab -d lab"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+    restart: unless-stopped
+  instrument:
+    build:
+      context: .
+      dockerfile: instrument/Dockerfile
+    environment:
+      INSTRUMENT_ID: sim-01
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 5s
+  lab:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: runtime
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DATABASE_URL: postgresql://lab:${POSTGRES_PASSWORD}@db:5432/lab
+      INSTRUMENT_HOST: instrument
+      LAB_MODE: local
+      WEB_CONCURRENCY: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      instrument:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=2)"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    init: true
+    stop_grace_period: 10s
+  backend-test:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: test
+    environment:
+      DATABASE_URL: postgresql://lab:${POSTGRES_PASSWORD}@db:5432/lab
+      INSTRUMENT_HOST: instrument
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  lab-data:
