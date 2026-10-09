@@ -2,7 +2,7 @@
 
 - Last working milestone: Phase 1 single-device workflow through React, FastAPI,
   the separate C++ simulator and PostgreSQL. Complete and stopped runs demonstrated.
-- Current gate: Phase 1 checkpoint; wait for the user's discussion response before
+- Current gate: Phase 1 discussion completed; wait for an explicit request to start
   Phase 2. Fast pace requested; no interview scheduling needed.
 - Repository: public ammaar134/Remote-Expriment-Control-Lab; local codex/phase-1.
   Initial publication to main approved. Verify the current remote commit and its
@@ -13,7 +13,7 @@
 - Runtime: http://127.0.0.1:8000 via Docker Compose; database history is persistent.
   Docker startup was restored with reversible local socket-directory backups.
 
-## Latest validation (2026-10-09)
+## Latest validation (2026-10-10, Pacific/Auckland)
 
 Passed against the Phase 1 implementation:
 
@@ -24,7 +24,7 @@ Passed against the Phase 1 implementation:
   queue overflow faulted with simulated output zero.
 - Four Python tests, including real PostgreSQL immutability/uniqueness constraints
   and terminal-state-before-final-data reconciliation; Ruff and mypy passed.
-- React/TypeScript production build, three behavior tests and Prettier checks.
+- React/TypeScript production build, six behavior tests and Prettier checks.
 - API smoke: complete run with 100 durable ordered samples, EMA verification,
   duplicate/conflicting Start and a confirmed stopped run.
 - Playwright using installed Edge: live acquisition, browser refresh, saved review,
@@ -32,14 +32,30 @@ Passed against the Phase 1 implementation:
 - npm audit: zero reported vulnerabilities. Staged scans and the two-commit full
   history scan reported no leaks; repeat for subsequent commits.
 
-All local functional checks passed. The first remote run passed every gate through
-API integration, then exposed an ambiguous browser selector: Chromium matched both
-the chart and its legend icon. The test now selects the full exact chart name;
-the original visibility assertion is preserved. Follow the latest commit check at
-https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions for its result. Production frontend build reports a roughly
-603 kB uncompressed JavaScript chunk; loading optimization remains for Phase 3.
-Remote Linux CI must be checked for the exact remote SHA. Windows native-browser automation
-was unavailable; the Playwright/Edge test provided actual browser validation.
+All local functional checks passed. Commit de28ae5 passed every Linux CI gate,
+including real Chromium flow: https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/37920817898.
+That revision fixed an ambiguous chart/legend selector. The checkpoint follow-up
+clarifies data status and adds tests for missing counts and unknown final sequence.
+Check the latest commit's CI result at
+https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions.
+Production frontend build reports a roughly 603 kB uncompressed JavaScript chunk;
+loading optimization remains for Phase 3. Local browser validation uses Edge.
+
+## Checkpoint discussion
+
+- Command acceptance, observed RUNNING, and a committed sample prove different
+  things. The browser displays observations; C++ owns execution; PostgreSQL owns
+  durable records. Closing the browser does not stop a healthy backend-owned run.
+- A terminal engine status can arrive before final telemetry on the other socket.
+  For final sequence 99 with committed sequences 0-98, show completed execution
+  with Data: finalizing. After the existing three-second drain deadline, show
+  Data: partial with one missing sample. Receipt/commit of the final sample allows
+  Data: complete. Unknown final sequence must not invent a missing count.
+- The user delegated this presentation decision; it is implemented in Status and
+  covered by behavior tests. No claim about the user's proficiency is implied.
+- Remote laptop preview is delivered in-chat as read-only captured application
+  screens. It does not depend on the laptop reaching the host's loopback address
+  and does not expose the instrument controls publicly.
 
 ## Reproduce
 
@@ -62,8 +78,7 @@ checks require stopping the API to release its controlling connection.
 
 ## Next and limits
 
-- Next: trace Start and one sample, discuss execution versus recording completion.
-  Phase 2 follows only after the gate. Publishing target main is now approved.
+- Next: Phase 2 reliability work when requested. Publishing target main is approved.
 - Phase 2 adds durable telemetry acknowledgements/retransmission and broad failure
   reconciliation/injection. A dropped Phase 1 stream cannot recover missing data.
 - CSV/replay, complete recipe management and two-device timing are later phases.

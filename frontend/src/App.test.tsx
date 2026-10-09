@@ -21,9 +21,56 @@ const running: Device = {
 
 describe("truthful execution controls", () => {
   it("keeps completed execution and incomplete data visible together", () => {
-    render(<Status state="COMPLETED" recording="partial" />);
+    render(
+      <Status
+        state="COMPLETED"
+        recording="partial"
+        finalSeq={99}
+        persistedSeq={98}
+      />,
+    );
     expect(screen.getByText("completed")).toBeVisible();
+    expect(screen.getByText("Data: partial · 1 sample missing")).toBeVisible();
+  });
+  it("waits for final data without claiming it is complete or missing prematurely", () => {
+    render(
+      <Status
+        state="COMPLETED"
+        recording="draining"
+        finalSeq={99}
+        persistedSeq={98}
+      />,
+    );
+    expect(screen.getByText("completed")).toBeVisible();
+    expect(screen.getByText("Data: finalizing")).toBeVisible();
+    expect(
+      screen.queryByText(/missing|Data: complete/),
+    ).not.toBeInTheDocument();
+  });
+  it("does not invent a missing count when the final sequence is unknown", () => {
+    render(
+      <Status
+        state="UNKNOWN"
+        recording="partial"
+        finalSeq={null}
+        persistedSeq={98}
+      />,
+    );
     expect(screen.getByText("Data: partial")).toBeVisible();
+    expect(screen.queryByText(/missing/)).not.toBeInTheDocument();
+  });
+  it("counts all samples as missing when none were committed", () => {
+    render(
+      <Status
+        state="COMPLETED"
+        recording="partial"
+        finalSeq={99}
+        persistedSeq={-1}
+      />,
+    );
+    expect(
+      screen.getByText("Data: partial · 100 samples missing"),
+    ).toBeVisible();
   });
   it("does not allow Stop while disconnected even if the last observation was running", async () => {
     const stop = vi.fn();
