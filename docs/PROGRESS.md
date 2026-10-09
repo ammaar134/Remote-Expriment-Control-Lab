@@ -35,7 +35,7 @@
   refresh -> complete saved Review -> confirmed Stop. Desktop and 390-pixel mobile
   screenshots were visually checked. Four synthetic runs (two completed, two
   stopped) have complete recordings, with 462 samples in total.
-- Final redeploy dep-db4jopss728c73fj042g is live. A new C++ boot was observed;
+- Initial verification redeploy dep-db4jopss728c73fj042g was live. A new C++ boot was observed;
   authenticated history remained readable with identical sample counts/bounds.
   Completed and stopped API-smoke runs survived with 100 and 29 ordered samples.
 - Cloud began with empty history; no local database history was uploaded.
@@ -60,8 +60,14 @@
   completed/stopped experiments, deliberately terminates its disposable database
   owner session, and verifies unchanged saved history after restarting.
   Container overlap/ownership, access boundaries and child shutdown also passed.
-- Cloud deployment and verification of this fix are pending. The four existing
-  cloud recordings still have 462 samples with unchanged sequence bounds.
+- The fix is live as application commit ee7db8a65e81c524bd269e8a9682515fee0940d1,
+  Render deploy dep-db4k5mks728c73fkch1g. Public health returns 200 and a fresh
+  database ownership session was observed. The four existing cloud recordings
+  were intact before deployment, with 462 samples and unchanged sequence bounds.
+  The application commit's Linux CI is tracked at
+  https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/37981633138.
+  The operator has been asked to reload and confirm live samples; credentials
+  were not requested in chat or changed as part of this fix.
 
 ## Latest validation (2026-10-10, Pacific/Auckland)
 
