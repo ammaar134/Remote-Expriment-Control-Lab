@@ -1,3 +1,11 @@
+FROM gcc:14-bookworm@sha256:5e927c284bf55a7dc796262e311a0703344f62f41f5621eb56843111b1d37e15 AS instrument-build
+RUN apt-get update && apt-get install -y --no-install-recommends cmake ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+COPY instrument/ .
+RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build build -j2 && ctest --test-dir build --output-on-failure
+
 FROM node:24-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS frontend
 WORKDIR /ui
 COPY frontend/package*.json ./
@@ -21,3 +29,7 @@ COPY --from=frontend /ui/dist ./static
 USER 10002
 EXPOSE 8000
 CMD ["uvicorn", "lab.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--limit-concurrency", "64", "--timeout-keep-alive", "5"]
+
+FROM runtime AS hosted
+COPY --from=instrument-build /src/build/instrument /usr/local/bin/instrument
+CMD ["python", "-m", "lab.hosted"]

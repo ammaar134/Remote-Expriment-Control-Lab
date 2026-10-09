@@ -8,6 +8,10 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 
+class OwnerBusyError(RuntimeError):
+    """An older deployment still holds the single-orchestrator lock."""
+
+
 class Store:
     def __init__(self, dsn: str):
         self.dsn = dsn
@@ -25,7 +29,7 @@ class Store:
         async with self.transaction() as cur:
             await cur.execute("SELECT pg_try_advisory_lock(134001) AS acquired")
             if not (await cur.fetchone())["acquired"]:
-                raise RuntimeError("Another orchestrator owns this database")
+                raise OwnerBusyError("Another orchestrator owns this database")
             await cur.execute(
                 "CREATE TABLE IF NOT EXISTS schema_migrations "
                 "(version text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())"

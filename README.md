@@ -1,6 +1,6 @@
 # Remote Experiment Control Lab
 
-A local experiment console built with React/TypeScript, Python/FastAPI, a separate
+An experiment console built with React/TypeScript, Python/FastAPI, a separate
 C++ simulator and PostgreSQL. Configure a stepped recipe, watch raw and filtered
 measurements, confirm Stop, and inspect the immutable saved run.
 
@@ -23,7 +23,9 @@ to two seconds for a quick demonstration.
 `setup.py` creates an ignored `.env` with a random database password and preserves
 existing configuration. UI/API port 8000 binds only to loopback; PostgreSQL and both
 instrument ports stay on the private Compose network. This is explicitly an
-unauthenticated local demo. Non-local deployment/authentication is not implemented.
+unauthenticated local demo. For an authenticated cloud instance, see
+[Render + Neon deployment](docs/HOSTING.md). A cloud deployment runs independently
+of the development computer and has its own saved history.
 
 Normal stop/restart preserves history:
 

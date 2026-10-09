@@ -1,4 +1,5 @@
 """Exercise the real API -> C++ -> PostgreSQL path without test doubles."""
+import base64
 import json
 import os
 import time
@@ -7,13 +8,18 @@ import urllib.request
 import uuid
 
 BASE = os.getenv("LAB_URL", "http://127.0.0.1:8000")
+HEADERS = {}
+if os.getenv("LAB_PASSWORD"):
+    credentials = f"{os.getenv('LAB_USERNAME', 'operator')}:{os.environ['LAB_PASSWORD']}"
+    HEADERS["Authorization"] = "Basic " + base64.b64encode(credentials.encode()).decode()
+    HEADERS["Origin"] = os.getenv("LAB_PUBLIC_ORIGIN", BASE)
 
 
 def call(path, payload=None):
     request = urllib.request.Request(
         BASE + "/api" + path,
         data=None if payload is None else json.dumps(payload).encode(),
-        headers={} if payload is None else {"Content-Type": "application/json"},
+        headers={**HEADERS, **({} if payload is None else {"Content-Type": "application/json"})},
     )
     with urllib.request.urlopen(request, timeout=5) as response:
         return json.load(response)

@@ -1,0 +1,23 @@
+# Free web container; durable PostgreSQL is supplied by a Neon Free project.
+services:
+  - type: web
+    name: remote-experiment-control-lab
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeployTrigger: "off"
+    envVars:
+      - key: LAB_MODE
+        value: hosted
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: LAB_USERNAME
+        value: operator
+      - key: LAB_PASSWORD
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false

@@ -262,9 +262,9 @@ class Server {
     });
   }
  public:
-  Server(asio::io_context& io, std::string id)
-    : io_(io), control_listener_(io, tcp::endpoint(tcp::v4(), 9000)),
-      telemetry_listener_(io, tcp::endpoint(tcp::v4(), 9001)),
+  Server(asio::io_context& io, std::string id, const asio::ip::address& address)
+    : io_(io), control_listener_(io, tcp::endpoint(address, 9000)),
+      telemetry_listener_(io, tcp::endpoint(address, 9001)),
       tick_timer_(io), lease_timer_(io), instrument_(std::move(id)) {
     accept(false); accept(true); check_lease();
     std::cout << envelope("ready").dump() << std::endl;
@@ -284,7 +284,8 @@ int main() {
   try {
     asio::io_context io;
     const auto* id = std::getenv("INSTRUMENT_ID");
-    Server server(io, id ? id : "sim-01");
+    const auto* bind = std::getenv("INSTRUMENT_BIND_ADDRESS");
+    Server server(io, id ? id : "sim-01", asio::ip::make_address(bind ? bind : "0.0.0.0"));
     asio::signal_set signals(io, SIGINT, SIGTERM);
     signals.async_wait([&](const asio::error_code&, int) { server.shutdown(); });
     io.run(); // Exactly one thread owns every engine field and callback.

@@ -14,38 +14,50 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .models import StartRequest, StopRequest
 from .orchestrator import Orchestrator
-from .store import Store
+from .security import AccessControls, AccessSettings
+from .store import OwnerBusyError, Store
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 store = Store(os.environ.get("DATABASE_URL", ""))
 orchestrator = Orchestrator(store)
-ORIGINS = {
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-}
+access = AccessSettings.from_environment()
+
+
+async def own_and_run(app: FastAPI):
+    deadline = time.monotonic() + 180
+    while True:
+        try:
+            await store.open()
+            app.state.ready = app.state.startup_healthy = True
+            break
+        except (psycopg.OperationalError, OwnerBusyError) as exc:
+            await store.close()
+            # During a rolling deploy, allow traffic to switch so the old owner can
+            # shut down. Controls stay unavailable until its session lock is released.
+            app.state.startup_healthy = access.mode == "hosted" and isinstance(exc, OwnerBusyError)
+            if time.monotonic() >= deadline:
+                app.state.startup_healthy = False
+                logging.error('{"event":"startup_deadline_expired"}')
+                return
+            await asyncio.sleep(2)
+        except Exception as exc:
+            await store.close()
+            app.state.startup_healthy = False
+            logging.error('{"event":"startup_failed","error_type":"%s"}', type(exc).__name__)
+            return
+    await orchestrator.run()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if os.getenv("LAB_MODE", "local") != "local":
-        raise RuntimeError("Only the unauthenticated local demo mode is implemented")
     if int(os.getenv("WEB_CONCURRENCY", "1")) != 1:
         raise RuntimeError("Run exactly one API worker")
-    for attempt in range(10):
-        try:
-            await store.open()
-            break
-        except psycopg.OperationalError:
-            await store.close()
-            if attempt == 9:
-                raise
-            await asyncio.sleep(min(attempt + 1, 3))
-    orchestrator.task = asyncio.create_task(orchestrator.run())
+    app.state.ready = app.state.startup_healthy = False
+    orchestrator.task = asyncio.create_task(own_and_run(app))
     try:
         yield
     finally:
+        app.state.ready = app.state.startup_healthy = False
         orchestrator.task.cancel()
         with suppress(asyncio.CancelledError):
             await orchestrator.task
@@ -53,29 +65,30 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Remote Experiment Control Lab", lifespan=lifespan)
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "lab", "testserver"])
+app.state.ready = app.state.startup_healthy = False
 
 
 @app.middleware("http")
-async def local_controls(request: Request, call_next):
-    origin = request.headers.get("origin")
-    if origin and origin not in ORIGINS:
-        return JSONResponse({"detail": "Origin is not allowed"}, status_code=403)
-    if request.method in {"POST", "PUT", "PATCH"}:
-        length = request.headers.get("content-length")
-        if not length or not length.isdigit() or int(length) > 65_536:
-            return JSONResponse({"detail": "A body of at most 64 KiB is required"}, status_code=413)
-        if request.headers.get("content-type", "").split(";")[0] != "application/json":
-            return JSONResponse({"detail": "JSON is required"}, status_code=415)
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Referrer-Policy"] = "no-referrer"
-    response.headers["Cache-Control"] = "no-store"
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
+async def ready_controls(request: Request, call_next):
+    if request.url.path.startswith("/api/") and not app.state.ready:
+        return JSONResponse(
+            {"detail": "Starting the experiment service; please retry shortly"},
+            status_code=503,
+            headers={"Retry-After": "2"},
+        )
+    return await call_next(request)
+
+
+app.add_middleware(AccessControls, settings=access)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=access.hosts)
+
+
+@app.get("/healthz")
+async def platform_health():
+    return JSONResponse(
+        {"status": "ok" if app.state.startup_healthy else "starting"},
+        status_code=200 if app.state.startup_healthy else 503,
     )
-    return response
 
 
 @app.exception_handler(psycopg.Error)
