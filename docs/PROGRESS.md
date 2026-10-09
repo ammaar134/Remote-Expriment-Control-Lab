@@ -5,10 +5,11 @@
 - Current gate: Phase 1 checkpoint; wait for the user's discussion response before
   Phase 2. Fast pace requested; no interview scheduling needed.
 - Repository: public ammaar134/Remote-Expriment-Control-Lab; local codex/phase-1.
-  Initial push branch still needs approval. No push or remote CI run yet.
-- Commits: 7e5716b contains the independently tested engine/protocol slice. The
-  application checkpoint is the commit containing this record, titled
-  "Add persisted experiment workflows and operator console".
+  Initial publication to main approved. Verify the current remote commit and its
+  GitHub Actions result when resuming; do not infer remote CI from local checks.
+- Commits: 7e5716b contains the independently tested engine/protocol slice;
+  1dd0edf contains the application checkpoint. Final C++, Python, frontend,
+  API and real-browser checks passed against 1dd0edf with a clean working tree.
 - Runtime: http://127.0.0.1:8000 via Docker Compose; database history is persistent.
   Docker startup was restored with reversible local socket-directory backups.
 
@@ -28,12 +29,12 @@ Passed against the Phase 1 implementation:
   duplicate/conflicting Start and a confirmed stopped run.
 - Playwright using installed Edge: live acquisition, browser refresh, saved review,
   confirmed Stop and desktop/mobile layouts. Genuine screenshots visually checked.
-- npm audit: zero reported vulnerabilities. Staged secret scanning required before
-  each commit, then full-history scanning before the initial public push.
+- npm audit: zero reported vulnerabilities. Staged scans and the two-commit full
+  history scan reported no leaks; repeat for subsequent commits.
 
 No failing functional checks remain. Production frontend build reports a roughly
 603 kB uncompressed JavaScript chunk; loading optimization remains for Phase 3.
-Remote Linux CI is configured but has not run. Windows native-browser automation
+Remote Linux CI is configured; its result must be checked for the exact remote SHA. Windows native-browser automation
 was unavailable; the Playwright/Edge test provided actual browser validation.
 
 ## Reproduce
@@ -57,8 +58,8 @@ checks require stopping the API to release its controlling connection.
 
 ## Next and limits
 
-- Next: trace Start and one sample, discuss execution versus recording completion,
-  and select the initial public push branch. Phase 2 follows only after the gate.
+- Next: trace Start and one sample, discuss execution versus recording completion.
+  Phase 2 follows only after the gate. Publishing target main is now approved.
 - Phase 2 adds durable telemetry acknowledgements/retransmission and broad failure
   reconciliation/injection. A dropped Phase 1 stream cannot recover missing data.
 - CSV/replay, complete recipe management and two-device timing are later phases.
