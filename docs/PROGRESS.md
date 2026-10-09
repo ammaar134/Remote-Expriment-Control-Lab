@@ -32,9 +32,13 @@ Passed against the Phase 1 implementation:
 - npm audit: zero reported vulnerabilities. Staged scans and the two-commit full
   history scan reported no leaks; repeat for subsequent commits.
 
-No failing functional checks remain. Production frontend build reports a roughly
+All local functional checks passed. The first remote run passed every gate through
+API integration, then exposed an ambiguous browser selector: Chromium matched both
+the chart and its legend icon. The test now selects the full exact chart name;
+the original visibility assertion is preserved. Follow the latest commit check at
+https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions for its result. Production frontend build reports a roughly
 603 kB uncompressed JavaScript chunk; loading optimization remains for Phase 3.
-Remote Linux CI is configured; its result must be checked for the exact remote SHA. Windows native-browser automation
+Remote Linux CI must be checked for the exact remote SHA. Windows native-browser automation
 was unavailable; the Playwright/Edge test provided actual browser validation.
 
 ## Reproduce

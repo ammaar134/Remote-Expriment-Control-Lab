@@ -33,7 +33,12 @@ test("configure -> real live samples -> refresh -> completion -> saved review, t
     )
     .toBeGreaterThan(5);
   await page.reload();
-  await expect(page.getByRole("img", { name: /Raw response/ })).toBeVisible();
+  await expect(
+    page.getByRole("img", {
+      name: "Raw response, filtered response and reference over logical time",
+      exact: true,
+    }),
+  ).toBeVisible();
   if (process.env.UPDATE_SCREENSHOTS === "1")
     await page.screenshot({ path: screenshot("monitor.png"), fullPage: true });
   await expect
