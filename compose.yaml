@@ -20,6 +20,7 @@ services:
       dockerfile: instrument/Dockerfile
     environment:
       INSTRUMENT_ID: sim-01
+      LAB_ENABLE_FAULTS: ${LAB_ENABLE_FAULTS:-0}
     init: true
     restart: unless-stopped
     stop_grace_period: 5s
@@ -35,6 +36,7 @@ services:
       INSTRUMENT_HOST: instrument
       LAB_MODE: local
       WEB_CONCURRENCY: "1"
+      LAB_ENABLE_FAULTS: ${LAB_ENABLE_FAULTS:-0}
     depends_on:
       db:
         condition: service_healthy
@@ -47,6 +49,7 @@ services:
       retries: 20
     init: true
     stop_grace_period: 10s
+    restart: unless-stopped
   backend-test:
     profiles: ["test"]
     build:

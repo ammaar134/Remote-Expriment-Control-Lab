@@ -33,6 +33,9 @@ class StartRequest(StrictModel):
     name: str = Field(min_length=1, max_length=80)
     recipe: Recipe
     alpha: float = Field(default=0.15, gt=0, le=1)
+    scenario: Literal[
+        "normal", "lost_start_ack", "telemetry_reconnect", "controller_disconnect", "database_write_failure"
+    ] = "normal"
 
 
 class StopRequest(StrictModel):

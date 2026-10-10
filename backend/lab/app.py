@@ -56,9 +56,6 @@ async def own_and_run(app: FastAPI):
             app.state.startup_healthy = False
             logging.error('{"event":"startup_failed","error_type":"%s"}', type(exc).__name__)
             return
-    if access.mode != "hosted":
-        await orchestrator.run()
-        return
     try:
         async with asyncio.TaskGroup() as tasks:
             tasks.create_task(orchestrator.run())
@@ -137,6 +134,12 @@ async def device():
         "observation": orchestrator.observation,
         "observation_age_s": age,
         "error": orchestrator.error,
+        "recovering": orchestrator.recovering,
+        "faults_enabled": orchestrator.faults_enabled,
+        "diagnostics": {
+            "command_retries": orchestrator.link.retry_count,
+            "telemetry_reconnects": orchestrator.link.telemetry_reconnects,
+        },
     }
 
 
@@ -183,6 +186,8 @@ async def stop(run_id: UUID, request: StopRequest):
 @app.post("/api/device/reset")
 async def reset(request: StopRequest):
     async with orchestrator.actions:
+        if await store.rows("SELECT id FROM runs WHERE recording IN ('recording','draining')"):
+            raise HTTPException(409, "Wait for recording reconciliation before resetting the fault")
         known = await store.rows("SELECT kind,outcome FROM commands WHERE id=%s", (request.command_id,))
         if known:
             if known[0]["kind"] != "reset":

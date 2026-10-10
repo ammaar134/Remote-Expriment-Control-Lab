@@ -1,6 +1,6 @@
-# Instrument protocol v1 - initial contract
+# Instrument protocol v1 - reliable single-device contract
 
-Status: implemented Phase 1 contract. See protocol/examples.jsonl for wire examples.
+Status: Phase 2 extension. See protocol/examples.jsonl for wire examples.
 
 UTF-8 JSON objects terminated by LF over dedicated control and telemetry TCP
 connections. TCP may split or combine frames: parsers accumulate bytes until LF.
@@ -55,15 +55,54 @@ UTC independently. Never subtract unrelated process monotonic epochs.
 
 ## Stop, lease and bounds
 
-Phase 1 polls status every 400 ms, renewing a 5-second controller lease checked
+Python polls status every 400 ms, renewing a 5-second controller lease checked
 by the engine. Detected disconnect faults immediately; half-open peers fault when
 the lease expires (best-effort scheduling, not a real-time guarantee).
-Telemetry output queues are bounded; saturation or telemetry disconnect faults an
-active run and sets simulated output to zero. Control is never queued behind data.
+Telemetry retains at most 512 unacknowledged samples (5.12 seconds at 100 Hz).
+The socket queue holds at most eight outgoing sample frames, at most 25 samples
+per frame. A telemetry disconnect alone does not stop acquisition. Retention
+overflow faults before generating another sample and sets output to zero;
+already retained measurements remain available. Control bypasses the data queue.
 
 Terminal status can precede the final data frame. Python compares the highest
 contiguous committed sequence with final_seq before declaring complete recording.
 A bounded drain deadline converts unresolved gaps to visible partial data.
 
-Phase 2 extends this version with post-commit cumulative telemetry ACKs and
-same-boot retransmission. Neither guarantee is advertised in Phase 1.
+## Durable acknowledgement and recovery
+
+After a database transaction commits, Python sends on the control connection:
+
+```json
+{"v":1,"type":"ack","instrument_id":"sim-01","boot_id":"observed-boot","request_id":"unique-request","run_id":"observed-run","persisted_seq":99}
+```
+
+This asserts that every sequence through 99 is durable. C++ rejects the wrong
+run/boot, noninteger sequences and values beyond the sent cursor; repeated or
+older acknowledgements are harmless. Only this message frees retained samples.
+An ACK response reports the cumulative persisted sequence. It is not a device
+execution acknowledgement.
+
+Subscribe replays unacknowledged samples from the same boot, with their original
+source timestamps and values. On controller reconnect, Python first reads its
+committed cursor and acknowledges it, then subscribes. Duplicate samples are
+checked against immutable stored values; gaps roll back the whole batch. EMA
+resumes from the last committed value. No broker or on-disk engine spool exists.
+New runs cannot overwrite an unacknowledged tail. Explicit fault reset discards
+remaining retention only after the API has finished recording reconciliation.
+
+Control requests use at most three identical attempts, each with a two-second
+deadline. Late correlated responses are bounded and drained. After exhaustion,
+execution stays unknown until boot/run/status evidence resolves it. New boots
+mark unfinished old recordings partial and retain an unknown execution outcome
+unless terminal execution was already observed. They never reissue Start.
+Terminal samples have a ten-second drain deadline; later valid replay can still
+complete the recording. A database ownership-session failure shuts the API down;
+Compose/Render restarts it and ownership is reacquired before controls resume.
+
+Local fault demonstrations require LAB_ENABLE_FAULTS=1 on both processes:
+lost_start_ack (one application response suppressed after caching),
+telemetry_reconnect (one data connection interruption), controller_disconnect,
+and database_write_failure (one transaction rolled back before ACK). The chosen
+scenario is immutable run metadata. Hosted API requests for these are rejected;
+the hosted instrument does not inherit the enabling variable. These scenarios
+do not alter real clocks, platform networking, or the deterministic signal.

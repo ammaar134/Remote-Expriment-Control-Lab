@@ -27,13 +27,21 @@ class Instrument:
         self.telemetry_writer: asyncio.StreamWriter | None = None
         self.lock = asyncio.Lock()
         self.connected = False
+        self.retry_count = 0
+        self.telemetry_reconnects = 0
 
     async def connect(self) -> dict:
         self.control_reader, self.control_writer = await asyncio.wait_for(
             asyncio.open_connection(self.host, 9000, limit=MAX_FRAME), 3
         )
         hello = await self.call("handshake")
+        if not hello.get("ok"):
+            raise ConnectionError("Control handshake rejected")
         self.boot_id = hello["boot_id"]
+        return hello
+
+    async def connect_telemetry(self) -> None:
+        await self.close_telemetry()
         telemetry_reader, telemetry_writer = await asyncio.wait_for(
             asyncio.open_connection(self.host, 9001, limit=MAX_FRAME), 3
         )
@@ -43,8 +51,6 @@ class Instrument:
         response = await asyncio.wait_for(read_frame(telemetry_reader), 3)
         if not response.get("ok") or response.get("boot_id") != self.boot_id:
             raise ConnectionError("Telemetry handshake rejected")
-        self.connected = True
-        return hello
 
     def message(self, kind: str, **fields) -> dict:
         return {
@@ -61,17 +67,37 @@ class Instrument:
         async with self.lock:
             if self.control_writer is None or self.control_reader is None:
                 raise ConnectionError("Instrument is disconnected")
-            self.control_writer.write(json.dumps(request, separators=(",", ":")).encode() + b"\n")
-            async with asyncio.timeout(2):
-                await self.control_writer.drain()
-                response = await read_frame(self.control_reader)
-            if response.get("request_id") != request["request_id"]:
-                raise ConnectionError("Instrument response correlation mismatch")
-            if response.get("instrument_id") != self.device_id:
-                raise ConnectionError("Instrument identity mismatch")
-            if kind != "handshake" and response.get("boot_id") != self.boot_id:
-                raise ConnectionError("Engine restarted")
-            return response
+            encoded = json.dumps(request, separators=(",", ":")).encode() + b"\n"
+            # Identical retry, same boot and command ID, inside the engine's 120s
+            # retention horizon. Bound stale replies as well as wall-clock time.
+            for attempt in range(3):
+                self.control_writer.write(encoded)
+                try:
+                    async with asyncio.timeout(2):
+                        await self.control_writer.drain()
+                        for _ in range(16):
+                            response = await read_frame(self.control_reader)
+                            if response.get("instrument_id") != self.device_id:
+                                raise ConnectionError("Instrument identity mismatch")
+                            if kind != "handshake" and response.get("boot_id") != self.boot_id:
+                                raise ConnectionError("Engine restarted")
+                            if response.get("request_id") == request["request_id"]:
+                                return {**response, "attempts": attempt + 1}
+                        raise ConnectionError("Too many stale instrument responses")
+                except TimeoutError:
+                    if attempt == 2:
+                        raise
+                    self.retry_count += 1
+            raise ConnectionError("No command response")
+
+    async def close_telemetry(self) -> None:
+        if self.telemetry_writer:
+            self.telemetry_writer.close()
+            try:
+                await asyncio.wait_for(self.telemetry_writer.wait_closed(), 1)
+            except (TimeoutError, OSError):
+                pass
+        self.telemetry_reader = self.telemetry_writer = None
 
     async def close(self) -> None:
         self.connected = False

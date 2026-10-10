@@ -43,3 +43,20 @@ def test_terminal_execution_does_not_imply_complete_recording():
         assert evidence.updates[-1][1] == "complete"
 
     asyncio.run(check())
+
+
+def test_cached_retry_reply_does_not_replace_a_newer_observation():
+    async def check():
+        controller = Orchestrator(Evidence())
+        controller.observation = {"state": "COMPLETED", "final_seq": 4}
+        controller.last_seen = 123.0
+
+        async def reply(*args, **kwargs):
+            return {"ok": True, "attempts": 2, "status": {"state": "RUNNING"}}
+
+        controller.link.call = reply
+        await controller.send_command("start", "command", "run")
+        assert controller.observation["state"] == "COMPLETED"
+        assert controller.last_seen == 123.0
+
+    asyncio.run(check())

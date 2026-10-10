@@ -14,6 +14,13 @@ def main():
     data.socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024)
     data.boot = control.boot
     assert data.call("subscribe")["ok"]
+    # The preceding protocol test can leave a stopped, unacknowledged tail.
+    old = control.call("status")["status"]
+    if old["retained_samples"]:
+        last = -1
+        while last < old["final_seq"]:
+            last = data.read()["samples"][-1]["seq"]
+        assert control.call("ack", run_id=old["run_id"], persisted_seq=last)["ok"]
     recipe = {"sample_rate_hz": 100, "seed": 9,
               "steps": [{"setpoint": 0.7, "duration_ms": 60000}]}
     run = uid()
@@ -22,7 +29,7 @@ def main():
     def backlog():
         status = control.call("status")["status"]
         assert status["state"] == "RUNNING", status
-        return status if status["queued_frames"] >= 8 else None
+        return status if status["retained_samples"] >= 100 else None
 
     before = until(backlog, timeout=10)
     started = time.monotonic()
@@ -37,11 +44,16 @@ def main():
     data.socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024)
     data.boot = control.boot
     assert data.call("subscribe")["ok"]
+    last = -1
+    while last < stopped["final_seq"]:
+        last = data.read()["samples"][-1]["seq"]
+    assert control.call("ack", run_id=run, persisted_seq=last)["ok"]
     assert control.call("start", command_id=uid(), run_id=uid(), recipe=recipe)["ok"]
 
     def overflow():
         status = control.call("status")["status"]
         assert status["queued_frames"] <= 128
+        assert status["retained_samples"] <= 512
         return status if status["state"] == "FAULTED" else None
 
     fault = until(overflow, timeout=12)
@@ -50,7 +62,7 @@ def main():
     data.close()
     assert control.call("reset", command_id=uid())["ok"]
     control.close()
-    print("PASS: Stop bypasses a real telemetry backlog; overflow faults with zero output; queue <=128.")
+    print("PASS: Stop bypasses unacknowledged telemetry; retention overflow faults at 512 samples.")
 
 
 if __name__ == "__main__":

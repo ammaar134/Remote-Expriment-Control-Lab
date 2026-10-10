@@ -1,10 +1,12 @@
 import asyncio
 import json
 import logging
+import os
 import time
 from datetime import UTC, datetime
 from uuid import uuid4
 
+import psycopg
 from fastapi import HTTPException
 from psycopg.types.json import Jsonb
 
@@ -29,19 +31,26 @@ class Orchestrator:
         self.last_seen: float | None = None
         self.error = "Connecting to instrument"
         self.task: asyncio.Task | None = None
+        self.faults_enabled = (
+            os.getenv("LAB_MODE", "local") == "local" and os.getenv("LAB_ENABLE_FAULTS") == "1"
+        )
+        self.injected: set[str] = set()
+        self.recovering = True
 
     async def run(self):
         delay = 0.5
         while True:
             try:
-                await self.link.connect()
+                self.recovering = True
+                hello = await self.link.connect()
+                self.observation = hello["status"]
+                self.last_seen = time.monotonic()
+                await self.reconcile()
+                await self.link.connect_telemetry()
+                self.link.connected = True
+                self.recovering = False
                 delay = 0.5
                 self.error = ""
-                # An interrupted application does not fabricate completion or repeat Start.
-                pending = await self.store.rows(
-                    "SELECT id FROM runs WHERE recording IN ('recording','draining') ORDER BY created_at"
-                )
-                self.active = str(pending[0]["id"]) if pending else None
                 async with asyncio.TaskGroup() as tasks:
                     tasks.create_task(self.monitor())
                     tasks.create_task(self.ingest())
@@ -53,7 +62,9 @@ class Orchestrator:
                 if self.active:
                     try:
                         await self.store.execute(
-                            "UPDATE runs SET execution='UNKNOWN',recording='partial',reason=%s WHERE id=%s",
+                            "UPDATE runs SET execution=CASE "
+                            "WHEN execution IN ('COMPLETED','STOPPED','FAULTED') "
+                            "THEN execution ELSE 'UNKNOWN' END,reason=%s WHERE id=%s",
                             ("connection_interrupted", self.active),
                         )
                         await self.store.event(self.active, "connection_interrupted", {"outcome": "unknown"})
@@ -61,10 +72,74 @@ class Orchestrator:
                         log.error('{"event":"could_not_persist_interruption"}')
                 self.active = None
                 self.filters.clear()
+                if self.store.connection is not None and self.store.connection.closed:
+                    raise ConnectionError("Database ownership session lost") from exc
             finally:
                 await self.link.close()  # Engine independently faults on controller loss.
             await asyncio.sleep(delay)
             delay = min(5, delay * 2)
+
+    async def reconcile(self):
+        """Use boot/run evidence before permitting control; never repeat Start."""
+        self.active = None
+        self.drain_deadline = None
+        rows = await self.store.rows(
+            "SELECT * FROM runs WHERE recording IN ('recording','draining') OR "
+            "id::text=%s ORDER BY created_at",
+            (self.observation.get("run_id", "") if self.observation["state"] != "IDLE" else "",),
+        )
+        for row in rows:
+            run_id = str(row["id"])
+            same = row["boot_id"] == self.link.boot_id and run_id == self.observation.get("run_id")
+            if not same:
+                reason = "engine_restarted" if row["boot_id"] != self.link.boot_id else "run_not_on_device"
+                await self.store.execute(
+                    "UPDATE runs SET execution=CASE WHEN execution IN ('COMPLETED','STOPPED','FAULTED') "
+                    "THEN execution ELSE 'UNKNOWN' END,recording=CASE WHEN final_seq IS NOT NULL "
+                    "AND final_seq=persisted_seq THEN 'complete' ELSE 'partial' END,reason=%s,"
+                    "finished_at=COALESCE(finished_at,now()) WHERE id=%s",
+                    (reason, run_id),
+                )
+                await self.store.event(
+                    run_id,
+                    "reconciliation_unavailable",
+                    {
+                        "reason": reason,
+                        "previous_boot": row["boot_id"],
+                        "observed_boot": self.link.boot_id,
+                    },
+                )
+                continue
+            self.active = run_id
+            await self.store.event(run_id, "same_boot_reconciled", self.observation)
+            await self.store.execute(
+                "UPDATE runs SET recording=%s WHERE id=%s",
+                ("recording" if self.observation["state"] == "RUNNING" else "draining", run_id),
+            )
+            unknown = await self.store.rows(
+                "SELECT id FROM commands WHERE run_id=%s AND kind='start' "
+                "AND (outcome IS NULL OR outcome->>'outcome'='unknown')",
+                (run_id,),
+            )
+            for command in unknown:
+                result = {
+                    "outcome": "observed",
+                    "state": self.observation["state"],
+                    "boot_id": self.link.boot_id,
+                }
+                await self.store.execute(
+                    "UPDATE commands SET outcome=%s WHERE id=%s", (Jsonb(result), command["id"])
+                )
+                await self.store.event(
+                    run_id, "command_reconciled", {"command_id": str(command["id"]), **result}
+                )
+            if row["persisted_seq"] >= 0:
+                result = await self.link.call("ack", run_id=run_id, persisted_seq=row["persisted_seq"])
+                if not result.get("ok"):
+                    raise ConnectionError("Resume acknowledgement rejected")
+            if self.observation["state"] in TERMINAL:
+                self.drain_deadline = time.monotonic() + 10
+                await self.observe_terminal(row)
 
     async def monitor(self):
         while True:
@@ -96,7 +171,7 @@ class Orchestrator:
         complete = row["persisted_seq"] == final_seq
         if row["execution"] != self.observation["state"] or row["final_seq"] != final_seq:
             await self.store.event(run_id, "device_terminal", self.observation)
-            self.drain_deadline = time.monotonic() + 3
+            self.drain_deadline = time.monotonic() + 10
         timed_out = self.drain_deadline is not None and time.monotonic() > self.drain_deadline
         recording = "complete" if complete else ("partial" if timed_out else "draining")
         reason = self.observation.get("reason", "")
@@ -118,11 +193,34 @@ class Orchestrator:
             self.filters.pop(run_id, None)
 
     async def ingest(self):
-        reader = self.link.telemetry_reader
-        if reader is None:
-            raise ConnectionError("Telemetry disconnected")
+        delay = 0.25
         while True:
-            frame = await read_frame(reader)
+            try:
+                reader = self.link.telemetry_reader
+                if reader is None:
+                    raise ConnectionError("Telemetry disconnected")
+                frame = await asyncio.wait_for(read_frame(reader), 3)
+                delay = 0.25
+            except (ConnectionError, OSError, TimeoutError) as exc:
+                if (
+                    isinstance(exc, TimeoutError)
+                    and self.observation["state"] != "RUNNING"
+                    and not self.active
+                ):
+                    await asyncio.sleep(0.25)
+                    continue
+                self.error = "Recovering retained telemetry"
+                if self.active:
+                    await self.store.event(self.active, "telemetry_reconnecting", {"delay_s": delay})
+                await self.link.close_telemetry()
+                await asyncio.sleep(delay)
+                try:
+                    await self.link.connect_telemetry()
+                    self.link.telemetry_reconnects += 1
+                    self.error = ""
+                except (ConnectionError, OSError, TimeoutError):
+                    delay = min(2, delay * 2)
+                continue
             received = datetime.now(UTC)
             if (
                 frame.get("type") != "samples"
@@ -141,6 +239,20 @@ class Orchestrator:
                 row = await cur.fetchone()
                 if row is None or row["boot_id"] != self.link.boot_id:
                     raise ConnectionError("Unknown run or boot")
+                scenario = row["snapshot"].get("scenario", "normal")
+                inject = (
+                    self.faults_enabled
+                    and run_id not in self.injected
+                    and scenario not in {"normal", "lost_start_ack"}
+                )
+                if inject and scenario == "database_write_failure":
+                    self.injected = {run_id}
+                    # This transaction rolls back. No sample from it is acknowledged.
+                    await cur.execute(
+                        "INSERT INTO events(run_id,kind,detail) VALUES (%s,'rolled_back_demo','{}')",
+                        (run_id,),
+                    )
+                    raise psycopg.OperationalError("Injected database write failure")
                 last = row["persisted_seq"]
                 await cur.execute(
                     "SELECT filtered FROM samples WHERE run_id=%s AND boot_id=%s AND seq=%s",
@@ -154,12 +266,21 @@ class Orchestrator:
                     sample = Sample.model_validate(raw)
                     if sample.seq <= last:
                         await cur.execute(
-                            "SELECT response,reference,logical_s,setpoint FROM samples "
+                            "SELECT response,reference,logical_s,setpoint,device_elapsed_s,source_utc "
+                            "FROM samples "
                             "WHERE run_id=%s AND boot_id=%s AND seq=%s",
                             (run_id, self.link.boot_id, sample.seq),
                         )
                         old = await cur.fetchone()
-                        if not old or any(old[k] != getattr(sample, k) for k in old):
+                        if not old or any(
+                            old[k]
+                            != (
+                                datetime.fromisoformat(sample.source_utc)
+                                if k == "source_utc"
+                                else getattr(sample, k)
+                            )
+                            for k in old
+                        ):
                             raise ConnectionError("Conflicting duplicate sample")
                         continue
                     filtered = ema.apply(sample.seq, sample.response)
@@ -181,18 +302,38 @@ class Orchestrator:
                     )
                     last = sample.seq
                 await cur.execute("UPDATE runs SET persisted_seq=%s WHERE id=%s", (last, run_id))
-            # No telemetry durability ACK in Phase 1: that is a Phase 2 extension.
+            # The transaction context has COMMITTED before this control message.
+            ack = await self.link.call("ack", run_id=run_id, persisted_seq=last)
+            if not ack.get("ok"):
+                raise ConnectionError("Durability acknowledgement rejected")
+            if inject:
+                self.injected = {run_id}
+                await self.store.event(
+                    run_id, "fault_injected", {"scenario": scenario, "persisted_seq": last}
+                )
+                if scenario == "controller_disconnect":
+                    raise ConnectionError("Injected controller disconnect")
+                if scenario == "telemetry_reconnect":
+                    await self.link.close_telemetry()
+                    await asyncio.sleep(1)
 
     async def start(self, request: StartRequest):
         payload = request.model_dump(mode="json")
         command_id = str(request.command_id)
+        if request.scenario != "normal" and not self.faults_enabled:
+            raise HTTPException(403, "Fault demonstrations are disabled in this environment")
         async with self.actions:
             known = await self.store.rows("SELECT * FROM commands WHERE id=%s", (command_id,))
             if known:
-                if known[0]["kind"] != "start" or known[0]["payload"] != payload:
+                saved_payload = {"scenario": "normal", **known[0]["payload"]}
+                if known[0]["kind"] != "start" or saved_payload != payload:
                     raise HTTPException(409, "Command ID conflicts with an earlier request")
                 return {"run_id": str(known[0]["run_id"]), "outcome": known[0]["outcome"]}
-            if not self.link.connected or self.observation["state"] not in {"IDLE", "STOPPED", "COMPLETED"}:
+            if (
+                self.recovering
+                or not self.link.connected
+                or self.observation["state"] not in {"IDLE", "STOPPED", "COMPLETED"}
+            ):
                 raise HTTPException(409, "Instrument is not ready for a new run")
             if await self.store.rows("SELECT id FROM runs WHERE recording IN ('recording','draining')"):
                 raise HTTPException(409, "The previous recording is still being finalized")
@@ -204,8 +345,9 @@ class Orchestrator:
                 "channels": [{"name": "response", "unit": "a.u."}, {"name": "reference", "unit": "a.u."}],
                 "model": {"version": "first-order-1", "tau_s": 0.5, "noise": "xorshift32-uniform-0.02"},
                 "protocol_version": 1,
-                "engine_version": "0.1.0",
-                "build": "phase-1",
+                "engine_version": "0.2.0",
+                "build": "phase-2",
+                "scenario": request.scenario,
             }
             async with self.store.transaction() as cur:
                 await cur.execute(
@@ -225,7 +367,13 @@ class Orchestrator:
                     (run_id, Jsonb({"command_id": command_id})),
                 )
             self.active = run_id
-            await self.send_command("start", command_id, run_id, recipe=payload["recipe"])
+            await self.send_command(
+                "start",
+                command_id,
+                run_id,
+                recipe=payload["recipe"],
+                scenario="lost_start_ack" if request.scenario == "lost_start_ack" else "normal",
+            )
             return {"run_id": run_id}
 
     async def send_command(self, kind, command_id, run_id, **fields):
@@ -252,8 +400,11 @@ class Orchestrator:
                 )
                 self.active = None
             raise HTTPException(409, result["error"]["message"])
-        self.observation = result["status"]
-        self.last_seen = time.monotonic()
+        # A retried command can return its original cached state. Only a fresh
+        # status poll may advance the current observation in that case.
+        if result.get("attempts", 1) == 1:
+            self.observation = result["status"]
+            self.last_seen = time.monotonic()
         return result
 
     async def stop(self, run_id: str, command_id: str):

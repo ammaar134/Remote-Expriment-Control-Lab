@@ -85,6 +85,8 @@ def main():
     assert [point["seq"] for point in points] == list(range(5))
     state = until(lambda: r if (r := control.call("status")["status"])["state"] == "COMPLETED" else False)
     assert state["final_seq"] == 4 and state["output"] == 0
+    assert control.call("ack", run_id=run, persisted_seq=5)["error"]["code"] == "INVALID_ACK"
+    assert control.call("ack", run_id=run, persisted_seq=4)["ok"]
     assert control.send(start) == applied  # Must not execute the recipe a second time.
     assert control.call("status")["status"]["state"] == "COMPLETED"
     assert control.call("stop", run_id=run, command_id=uid())["status"]["state"] == "COMPLETED"
@@ -98,14 +100,22 @@ def main():
     assert stopped["status"]["state"] == "STOPPED" and stopped["status"]["output"] == 0
     assert stopped["status"]["final_seq"] >= 0
     assert control.call("stop", command_id=uid(), run_id=second_run)["status"]["state"] == "STOPPED"
+    assert control.call("ack", run_id=second_run, persisted_seq=stopped["status"]["final_seq"])["ok"]
 
-    # A lost telemetry connection faults the engine independently of Python.
+    # A same-boot reconnect resends the uncommitted prefix without changing samples.
     third_run = uid()
     assert control.call("start", command_id=uid(), run_id=third_run, recipe=recipe)["ok"]
+    first = data.read()["samples"][0]
     data.close()
-    fault = until(lambda: r if (r := control.call("status")["status"])["state"] == "FAULTED" else False)
-    assert fault["output"] == 0
-    assert control.call("reset", command_id=uid())["ok"]
+    until(lambda: not control.call("status")["status"]["telemetry_ready"])
+    data = Peer(9001)
+    data.boot = control.boot
+    assert data.call("subscribe")["ok"]
+    recovered = data.read()["samples"]
+    assert recovered[0] == first
+    assert control.call("status")["status"]["state"] == "RUNNING"
+    control.call("stop", command_id=uid(), run_id=third_run)
+    data.close()
     # The parser rejects an oversized unterminated frame.
     control.socket.sendall(b"x" * 65537)
     try:
@@ -114,7 +124,7 @@ def main():
         pass
     control.close()
     print("PASS: fragmented/coalesced frames, version rejection, real samples, idempotent Start,")
-    print("      conflicting IDs, stale/repeated Stop, confirmed zero output, telemetry loss, frame limit.")
+    print("      conflicting IDs, stale/repeated Stop, confirmed zero output, same-boot replay, ACK limits.")
 
 
 if __name__ == "__main__":
