@@ -33,6 +33,7 @@ class StartRequest(StrictModel):
     name: str = Field(min_length=1, max_length=80)
     recipe: Recipe
     alpha: float = Field(default=0.15, gt=0, le=1)
+    recipe_version_id: UUID | None = None
     scenario: Literal[
         "normal", "lost_start_ack", "telemetry_reconnect", "controller_disconnect", "database_write_failure"
     ] = "normal"
@@ -40,6 +41,20 @@ class StartRequest(StrictModel):
 
 class StopRequest(StrictModel):
     command_id: UUID
+
+
+class RecipeSaveRequest(StrictModel):
+    request_id: UUID
+    parent_id: UUID | None = None
+    name: str = Field(min_length=1, max_length=80)
+    recipe: Recipe
+    alpha: float = Field(gt=0, le=1)
+
+    @model_validator(mode="after")
+    def nonblank_name(self) -> "RecipeSaveRequest":
+        if not self.name.strip():
+            raise ValueError("Give the recipe a name")
+        return self
 
 
 class Sample(StrictModel):

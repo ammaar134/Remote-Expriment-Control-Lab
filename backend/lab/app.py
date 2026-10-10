@@ -15,6 +15,8 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .models import StartRequest, StopRequest
 from .orchestrator import Orchestrator
+from .recipes import recipe_routes
+from .review import review_routes
 from .security import AccessControls, AccessSettings
 from .store import OwnerBusyError, Store
 
@@ -143,34 +145,8 @@ async def device():
     }
 
 
-@app.get("/api/runs")
-async def runs():
-    return await store.rows(
-        "SELECT id,snapshot->>'name' AS name,execution,recording,reason,persisted_seq,final_seq,"
-        "created_at,finished_at FROM runs ORDER BY created_at DESC LIMIT 50"
-    )
-
-
-@app.get("/api/runs/{run_id}")
-async def run_detail(run_id: UUID):
-    rows = await store.rows("SELECT * FROM runs WHERE id=%s", (run_id,))
-    if not rows:
-        raise HTTPException(404, "Run not found")
-    events = await store.rows(
-        "SELECT id,kind,detail,created_at FROM events WHERE run_id=%s ORDER BY id LIMIT 200", (run_id,)
-    )
-    return {**rows[0], "events": events}
-
-
-@app.get("/api/runs/{run_id}/samples")
-async def samples(run_id: UUID, after: int = -1):
-    if after < -1 or after > 5999:
-        raise HTTPException(422, "Sequence outside allowed bounds")
-    return await store.rows(
-        "SELECT seq,logical_s,setpoint,response,reference,filtered,source_utc,received_utc "
-        "FROM samples WHERE run_id=%s AND seq>%s ORDER BY seq LIMIT 6000",
-        (run_id, after),
-    )
+app.include_router(recipe_routes(store))
+app.include_router(review_routes(store))
 
 
 @app.post("/api/runs", status_code=202)

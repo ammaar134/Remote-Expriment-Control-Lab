@@ -1,10 +1,26 @@
 # Progress
 
+## Phase 3 in progress — 2026-10-11, Pacific/Auckland
+
+The operator confirmed the sign-in correction works and authorized Phase 3.
+Branch: `codex/phase-3`. Existing approval covers `main` and the free Render/Neon deployment.
+Phase 4 remains paused until the Phase 3 checkpoint.
+
+Backend slice: immutable reusable recipe revisions, filtered history, bounded
+extrema-preserving chart queries, whole-recording statistics, exact CSV/metadata
+exports, and read-only saved-observation replay. Python checks: 34 tests passed
+against an isolated Neon verification branch; Ruff and mypy passed. The native
+frontend build passes. Docker Desktop has an unrelated stale socket startup
+failure; complete container and C++ checks will run in Linux CI.
+
+Pending: operator UI completion, browser workflows/visual review, migration
+verification against cloned history, exact-commit CI, deployment and checkpoint.
+
 ## Phase 2 checkpoint — 2026-10-10, Pacific/Auckland
 
 Phase 2 and the concurrent redesign were explicitly authorized. The operator
-keeps the working console first and delegated visual selection. Phase 3 has not
-started; stop here for the checkpoint discussion after publication/deployment.
+keeps the working console first and delegated visual selection. This checkpoint
+was completed before the separately authorized Phase 3 work above.
 
 Repository: public ammaar134/Remote-Expriment-Control-Lab. Work branch:
 `codex/phase-2`; publication to `main` and the existing free hosting are approved.

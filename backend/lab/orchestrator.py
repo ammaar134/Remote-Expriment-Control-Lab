@@ -13,6 +13,7 @@ from psycopg.types.json import Jsonb
 from .filtering import EMA
 from .instrument import Instrument, read_frame
 from .models import Sample, StartRequest
+from .recipes import RECIPE_FIELDS, insert_recipe
 from .store import Store
 
 log = logging.getLogger("lab")
@@ -325,7 +326,7 @@ class Orchestrator:
         async with self.actions:
             known = await self.store.rows("SELECT * FROM commands WHERE id=%s", (command_id,))
             if known:
-                saved_payload = {"scenario": "normal", **known[0]["payload"]}
+                saved_payload = {"scenario": "normal", "recipe_version_id": None, **known[0]["payload"]}
                 if known[0]["kind"] != "start" or saved_payload != payload:
                     raise HTTPException(409, "Command ID conflicts with an earlier request")
                 return {"run_id": str(known[0]["run_id"]), "outcome": known[0]["outcome"]}
@@ -346,14 +347,34 @@ class Orchestrator:
                 "model": {"version": "first-order-1", "tau_s": 0.5, "noise": "xorshift32-uniform-0.02"},
                 "protocol_version": 1,
                 "engine_version": "0.2.0",
-                "build": "phase-2",
+                "build": os.getenv("RENDER_GIT_COMMIT", "phase-3-local"),
                 "scenario": request.scenario,
             }
             async with self.store.transaction() as cur:
-                await cur.execute(
-                    "INSERT INTO recipe_versions(id,name,content) VALUES (%s,%s,%s)",
-                    (recipe_id, request.name, Jsonb(payload["recipe"])),
-                )
+                if request.recipe_version_id:
+                    await cur.execute(
+                        "SELECT " + RECIPE_FIELDS + "WHERE v.id=%s", (request.recipe_version_id,)
+                    )
+                    version = await cur.fetchone()
+                    if not version:
+                        raise HTTPException(404, "Recipe version not found")
+                    if (version["name"], version["recipe"], version["alpha"]) != (
+                        request.name,
+                        payload["recipe"],
+                        request.alpha,
+                    ):
+                        raise HTTPException(409, "Recipe changed. Save a new version before starting.")
+                    recipe_id = str(version["id"])
+                    lineage = {
+                        "id": recipe_id,
+                        "family_id": str(version["family_id"]),
+                        "revision": version["revision"],
+                    }
+                else:
+                    lineage = await insert_recipe(
+                        cur, recipe_id, request.name, payload["recipe"], request.alpha
+                    )
+                snapshot["recipe_version"] = lineage
                 await cur.execute(
                     "INSERT INTO runs(id,device_id,boot_id,recipe_id,snapshot) VALUES (%s,%s,%s,%s,%s)",
                     (run_id, self.link.device_id, self.link.boot_id, recipe_id, Jsonb(snapshot)),
