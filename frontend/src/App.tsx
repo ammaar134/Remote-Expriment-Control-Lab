@@ -181,7 +181,10 @@ function SignalChart({ samples }: { samples: Sample[] }) {
   );
 }
 
-export function App() {
+export function App({
+  onSignOut,
+  signingOut = false,
+}: { onSignOut?: () => void; signingOut?: boolean } = {}) {
   const [route, setRoute] = useState(
     window.location.hash.slice(1) || "configure",
   );
@@ -395,6 +398,15 @@ export function App() {
               ? "Instrument connected"
               : "Instrument disconnected"}
           </span>
+          {onSignOut && (
+            <button
+              className="sign-out"
+              onClick={onSignOut}
+              disabled={signingOut}
+            >
+              {signingOut ? "Signing out…" : "Sign out"}
+            </button>
+          )}
         </header>
         <div className="workspace">
           <div className="page-heading">

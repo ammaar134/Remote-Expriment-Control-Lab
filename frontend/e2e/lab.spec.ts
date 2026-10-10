@@ -3,10 +3,24 @@ import { fileURLToPath } from "node:url";
 const screenshot = (name: string) =>
   fileURLToPath(new URL("../../docs/screenshots/" + name, import.meta.url));
 
+test.beforeEach(async ({ page }) => {
+  if (process.env.LAB_PASSWORD) {
+    await page.goto("/");
+    await page
+      .getByLabel("Username", { exact: true })
+      .fill(process.env.LAB_USERNAME || "operator");
+    await page
+      .getByLabel("Password", { exact: true })
+      .fill(process.env.LAB_PASSWORD);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await expect(page.getByLabel("Recipe name", { exact: true })).toBeVisible();
+  }
+});
+
 test("configure -> real live samples -> refresh -> completion -> saved review, then confirmed stop", async ({
   page,
-  request,
 }) => {
+  const request = page.request;
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
@@ -115,12 +129,19 @@ test("configure -> real live samples -> refresh -> completion -> saved review, t
     page.getByText("Data: complete", { exact: true }).first(),
   ).toBeVisible();
   expect(errors).toEqual([]);
+  if (process.env.LAB_PASSWORD) {
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
+    expect((await request.get("/api/runs")).status()).toBe(401);
+    await page.reload();
+    await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
+  }
 });
 
 test("local telemetry interruption is visible and ends with complete retained data", async ({
   page,
-  request,
 }) => {
+  const request = page.request;
   const device = await (await request.get("/api/device")).json();
   test.skip(
     !device.faults_enabled,

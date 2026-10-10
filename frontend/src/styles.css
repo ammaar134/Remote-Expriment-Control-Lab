@@ -90,6 +90,122 @@ small {
 .app-shell {
   min-height: 100vh;
 }
+.sign-in-page {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(24px, 5vw, 72px);
+}
+.sign-in-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.sign-in-brand span {
+  color: var(--copper);
+  font-size: 42px;
+  line-height: 1;
+}
+.sign-in-panel {
+  width: min(100%, 440px);
+  margin: auto;
+  padding: 56px 0;
+}
+.sign-in-eyebrow {
+  color: var(--copper);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-bottom: 20px;
+}
+.sign-in-description {
+  color: var(--muted);
+  margin: 20px 0 32px;
+  max-width: 36ch;
+}
+.sign-in-panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sign-in-panel label {
+  font-size: 12px;
+  font-weight: 700;
+}
+.sign-in-panel input {
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  padding: 12px;
+  border: 1px solid #adb8c9;
+  border-radius: 4px;
+  background: #f9fafc;
+  color: var(--ink);
+}
+.sign-in-panel > form > input {
+  margin-bottom: 12px;
+}
+.password-entry {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.password-entry input {
+  padding-right: 68px;
+}
+.password-entry button {
+  position: absolute;
+  right: 8px;
+  padding: 8px;
+  color: var(--blue);
+  background: transparent;
+  font-size: 12px;
+}
+.sign-in-panel .primary {
+  margin-top: 14px;
+  min-height: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: var(--blue);
+  color: white;
+  border-radius: 4px;
+}
+.sign-in-panel .primary:hover {
+  background: #1c2d5f;
+}
+.sign-in-note,
+.sign-in-footer {
+  color: var(--muted);
+  font-size: 12px;
+}
+.sign-in-note {
+  margin-top: 12px;
+  line-height: 1.7;
+}
+.sign-in-error {
+  color: #963720;
+  font-size: 13px;
+  margin: 8px 0;
+}
+.session-error {
+  padding: 12px 5%;
+  background: #fae7df;
+  color: #963720;
+}
+.sign-out {
+  background: transparent;
+  color: var(--blue);
+  padding: 8px 0 8px 16px;
+  border-left: 1px solid var(--line);
+  white-space: nowrap;
+}
+.topbar .connection {
+  margin-left: auto;
+}
 .sidebar {
   display: flex;
   align-items: center;

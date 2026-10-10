@@ -42,12 +42,13 @@ def main():
     first, second = tag + "-a", tag + "-b"
     containers = []
     origin = "https://lab.example.com"
-    password = secrets.token_urlsafe(32)
+    password = secrets.token_urlsafe(9)  # A 12-character human-sized login password.
     db_password = secrets.token_hex(24)
     environment = {
         **os.environ,
         "POSTGRES_PASSWORD": db_password,
         "LAB_PASSWORD": password,
+        "LAB_SESSION_SECRET": secrets.token_urlsafe(32),
         "DATABASE_URL": f"postgresql://lab:{db_password}@database:5432/lab",
     }
     docker("network", "create", tag)
@@ -93,6 +94,8 @@ def main():
                 "--env",
                 "LAB_PASSWORD",
                 "--env",
+                "LAB_SESSION_SECRET",
+                "--env",
                 "DATABASE_URL",
                 "experiment-lab-hosted",
                 env=environment,
@@ -113,15 +116,16 @@ def main():
         eventually(lambda: request(base, "/healthz")[0] == 200)
         api_smoke.BASE = base
         api_smoke.HEADERS = {
-            "Authorization": "Basic " + api_smoke.base64.b64encode(f"operator:{password}".encode()).decode(),
             "Origin": origin,
             "Host": "lab.example.com",
             "X-Forwarded-Proto": "https",
         }
         edge = {"Host": "lab.example.com", "X-Forwarded-Proto": "https"}
-        for path in ("/", "/api/runs", "/api/health", "/docs"):
+        assert request(base, "/", edge)[0] == 200, "Sign-in page must not challenge the browser"
+        for path in ("/api/runs", "/api/health", "/docs"):
             assert request(base, path, edge)[0] == 401
         assert request(base, "/api/runs", {"Host": "lab.example.com"})[0] == 403
+        api_smoke.login(password)
         assert request(base, "/", api_smoke.HEADERS)[0] == 200
         eventually(lambda: api_smoke.call("/health")["instrument_connected"])
         idle_boot = api_smoke.call("/device")["boot_id"]
@@ -155,7 +159,8 @@ def main():
                 "import pathlib; p=next(p for p in pathlib.Path('/proc').glob('[0-9]*/cmdline') "
                 "if p.read_bytes().startswith(b'/usr/local/bin/instrument')); "
                 "v=(p.parent/'environ').read_bytes(); "
-                "assert b'DATABASE_URL' not in v and b'LAB_PASSWORD' not in v; print('isolated')",
+                "assert all(k not in v for k in (b'DATABASE_URL', b'LAB_PASSWORD', b'LAB_SESSION_SECRET')); "
+                "print('isolated')",
             )
             == "isolated"
         )
@@ -215,6 +220,7 @@ def main():
         print("PASS: authenticated cloud image, HTTP/origin guards, private C++ ports, two real runs,")
         print("      idle session renewal, owner-loss shutdown, exclusive owner handoff,")
         print("      persistent review after replacement, child failure shutdown.")
+        print("      Same sign-in cookie survived both deployment and process restart.")
     finally:
         for container in reversed(containers):
             docker("rm", "--force", "--volumes", container)

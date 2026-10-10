@@ -1,5 +1,11 @@
 # Troubleshooting
 
+- **Repeated sign-in prompts:** the hosted app uses an in-page form, not a native
+  browser dialog. Close any old dialog and reopen the live URL after an upgrade.
+  Wrong credentials appear inline; wait one minute after too many attempts.
+  A session lasts 12 hours and survives refresh. Password/key rotation requires
+  another sign-in. The free host may take roughly a minute to wake.
+
 - Docker engine unavailable: start Docker Desktop (Linux containers) and check
   `docker info`. A Docker startup failure must be resolved before Compose tests.
   Never use factory reset or volume pruning as a routine startup step.

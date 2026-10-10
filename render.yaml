@@ -19,5 +19,7 @@ services:
         value: operator
       - key: LAB_PASSWORD
         generateValue: true
+      - key: LAB_SESSION_SECRET
+        generateValue: true
       - key: DATABASE_URL
         sync: false

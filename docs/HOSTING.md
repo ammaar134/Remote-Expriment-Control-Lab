@@ -60,11 +60,13 @@ finish (runs are capped at 60 seconds, below Render's idle timeout).
    [Open deployment configuration](https://dashboard.render.com/blueprint/new?repo=https://github.com/ammaar134/Remote-Expriment-Control-Lab).
    Confirm the web service plan says **Free**. The Blueprint builds
    `backend/Dockerfile`; its final `hosted` stage includes the C++ executable.
-4. Render generates `LAB_PASSWORD` as a 256-bit random secret. `LAB_USERNAME` is
-   `operator`. Use the password from the service's Environment page in the
-   browser's sign-in prompt. Keep it in a password manager, never in a URL, chat,
-   repository, frontend bundle or screenshot. Rotate it by changing the hosting
-   setting and redeploying; browsers may retain Basic credentials until closed.
+4. Render generates `LAB_PASSWORD` and a separate `LAB_SESSION_SECRET` as random
+   secrets. `LAB_USERNAME` is `operator`. Use the password on the app's sign-in
+   screen. A manually selected password must contain at least 12 characters;
+   prefer a unique password from a password manager. Keep both values out of
+   URLs, repositories, frontend bundles and screenshots. Changing either secret
+   and redeploying invalidates existing sessions. When upgrading an existing
+   service, add the random signing secret before deploying the session-based app.
 5. Render supplies `RENDER_EXTERNAL_HOSTNAME`; the app constructs its HTTPS origin
    from this value. For another trusted proxy host, set `LAB_PUBLIC_ORIGIN` to the
    exact HTTPS origin without a path, trailing slash or port. Set `LAB_MODE=hosted`
@@ -73,12 +75,35 @@ finish (runs are capped at 60 seconds, below Render's idle timeout).
    and saved Review. A successful build alone does not verify a live deployment.
 
 The deployment container refuses to start without hosted mode, a valid HTTPS
-origin, and a password of at least 32 characters. All UI files, API routes and
-OpenAPI docs require HTTP Basic authentication. State-changing requests also
-require the exact allowed Origin; cross-site browser requests are refused.
-There are no hosted fault-injection endpoints. The deliberate exception is GET
-`/healthz`, which returns only `ok` or `starting` for platform startup probes.
+origin, a password of at least 12 characters and a separate random signing secret
+of at least 32 characters. The sign-in shell and static assets are public; API
+data, instrument controls and OpenAPI docs require an authenticated session.
+State-changing requests require the exact allowed Origin; cross-site browser
+API requests are refused. Opening the public sign-in page from an external
+link is allowed. There are no hosted fault-injection endpoints. GET
+`/healthz` returns only `ok` or `starting` for platform startup probes.
 Authenticated `/api/health` reports database readiness and device connectivity.
+
+## Sign-in and sessions
+
+Sign-in protects the shared instrument controls and saved history on the public
+URL. It is one operator account, not a multi-user permission system. Local
+loopback-only Compose does not require a login.
+
+The app loads a stable form and checks `/auth/session` once. No instrument or
+history polling starts until authentication succeeds. `/auth/login` accepts JSON
+credentials over HTTPS and issues a signed, HttpOnly, Secure, SameSite=Strict,
+host-only cookie for 12 hours. Passwords are not kept in browser storage.
+Incorrect credentials stay inline without clearing inputs or refreshing the
+page. A 401 from the API returns the console to the form and stops polling;
+responses never issue a native browser Basic-auth challenge.
+
+Five failed attempts from one source within a minute trigger a temporary limit.
+The limiter is bounded and in memory on the single instance; it resets on a
+process restart. Sessions survive normal refreshes and container replacements
+while credentials/signing keys remain unchanged. Sign out clears the browser's
+cookie; a copied cookie remains valid until its expiry or credential rotation.
+Signing out does not stop a running experiment. Use Stop first when intended.
 
 The launcher trusts forwarded HTTPS headers because Render's edge is the only
 public entry point. Do not publish its raw HTTP port directly to the internet or
@@ -121,10 +146,11 @@ python3 tests/hosted_smoke.py
 ```
 
 The test creates its own disposable PostgreSQL and two app containers, verifies
-authentication and private C++ ports, completes and stops real experiments,
+cookie authentication and private C++ ports, completes and stops real experiments,
 checks exclusive ownership while containers overlap, verifies saved history
 after replacement, survives a real 45-second PostgreSQL idle-session timeout,
-and checks whole-container shutdown on database-session or child failure. It
+and checks whole-container shutdown on database-session or child failure. The
+same sign-in cookie remains valid across replacement and restart. The test
 removes only those test resources. Local Compose history is untouched.
 
 `tests/api_smoke.py` can also test a live deployment using process environment

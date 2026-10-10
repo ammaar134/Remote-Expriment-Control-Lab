@@ -56,7 +56,12 @@ export type Run = {
   };
   events?: { id: number; kind: string; created_at: string; detail: unknown }[];
 };
+let sessionGeneration = 0;
+export function resetApiSession() {
+  sessionGeneration++;
+}
 export async function api<T>(path: string, payload?: unknown): Promise<T> {
+  const generation = sessionGeneration;
   const response = await fetch(
     "/api" + path,
     payload === undefined
@@ -68,6 +73,9 @@ export async function api<T>(path: string, payload?: unknown): Promise<T> {
         },
   );
   if (!response.ok) {
+    if (response.status === 401 && generation === sessionGeneration) {
+      window.dispatchEvent(new Event("lab:sign-in-required"));
+    }
     const error = await response
       .json()
       .catch(() => ({ detail: "The server could not be reached" }));

@@ -11,7 +11,27 @@ Repository: public ammaar134/Remote-Expriment-Control-Lab. Work branch:
 Core reliability commit: `2a79d1dce989c5ac31da6c590b87ada2abb62dc8`.
 Its complete Linux CI passed, including C++ sanitizers:
 https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/38045003326.
-Console/documentation publication and final exact-commit CI are being finalized.
+Console/documentation release `313f3a36e75c5c5c7312a2ce481f6b5536f6a0cb` passed
+exact-commit CI and deployed successfully:
+https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/38045545375.
+
+## Sign-in correction — 2026-10-11, Pacific/Auckland
+
+The operator reported repeated native sign-in prompts/reloads and requested a
+shorter password. Replace HTTP Basic challenges with a stable app form and a
+12-hour signed cookie. The console does not mount or poll while signed out;
+expired sessions unmount it without navigation. Failed sign-in preserves typed
+details. Public static assets contain no experiment data; API routes and controls
+remain protected. Local mode still needs no login. Login attempts are limited,
+and a separate random signing key lets a 12-character password be used without
+using that password directly as the session key. Actual credentials stay solely
+in Render settings. No database migration or Phase 3 work is included.
+
+Regression checks cover 16 seconds of interrupted/slow typing, wrong-password
+feedback, no polling while signed out, session expiry, a manual connection retry,
+cookie flags, origin guards, tampering, credential rotation and rate limiting.
+The real hosted-image check reuses a cookie across replacement and process
+restart, alongside the existing Start/Stop and saved-history checks.
 
 ## Implemented
 
