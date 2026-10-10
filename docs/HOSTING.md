@@ -20,7 +20,7 @@ Verified on 2026-10-10 (Pacific/Auckland) against deployed application commit
 acquisition, 100 ordered durable samples, confirmed Stop, live browser refresh,
 saved Review, and desktop/mobile layouts. Four synthetic runs start the cloud
 history. A real redeploy preserved their 462 samples and recording statuses.
-Automatic deployment is off; Phase 2 remains paused.
+Automatic deployment is off. See PROGRESS.md for the latest Phase 2 release evidence.
 
 ## Free hosting choice
 
@@ -43,8 +43,9 @@ Verified provider documentation on 2026-10-10:
 
 Use free plans without adding a payment method or enabling paid upgrades. Render
 can suspend services for exhausted free quotas or excessive external traffic.
-An unexpected platform restart can interrupt a run; Phase 2 recovery is not yet
-implemented. Closing the browser normally leaves a short backend-owned run to
+An unexpected platform restart can interrupt a run. Same-boot recovery can drain
+retained telemetry; a changed engine boot preserves the committed prefix and marks
+unrecoverable evidence partial. Closing the browser normally leaves a short backend-owned run to
 finish (runs are capped at 60 seconds, below Render's idle timeout).
 
 ## Provision and configure
@@ -100,7 +101,8 @@ This deliberately accepts a short control outage during deployment.
 The launcher forwards shutdown to both child processes and waits up to ten
 seconds. Unexpected exit of either child terminates the container; the provider
 owns restart. A new C++ boot does not restart an old experiment. Completed saved
-runs survive. Interrupted runs retain the Phase 1 partial/unknown limitations.
+runs survive. Interrupted runs are reconciled against boot identity and retained
+telemetry; missing evidence after a changed boot remains partial/unknown.
 Cloud history begins empty; no local database upload is part of deployment.
 
 The hosted API checks its existing database ownership connection every 20

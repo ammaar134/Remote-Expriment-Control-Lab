@@ -29,13 +29,20 @@ and version belong to the immutable snapshot; raw samples are never overwritten.
 
 A sample stores logical time, source UTC, engine monotonic elapsed time and Python
 receipt UTC separately. Receipt time includes network/scheduling delay. No clock
-alignment or one-way network latency claim is made in Phase 1.
+alignment or one-way network latency claim is made.
 
 runs.persisted_seq is the last contiguous transactionally committed sequence.
 A terminal device observation supplies final_seq. Data is complete only when they
-match (including -1 for a zero-sample stop); a three-second drain deadline marks
+match (including -1 for a zero-sample stop); a ten-second drain deadline marks
 remaining gaps partial. Device execution, connectivity and recording status are
 separate observations in the UI.
+
+Phase 2 sends the contiguous cursor to C++ only after transaction commit. On
+same-boot reconnect, the engine replays its unacknowledged tail with original
+sequence, values and source times. Python compares already-committed duplicates
+and seeds EMA from the stored filtered value before processing new samples.
+A changed boot loses volatile retention; the saved prefix remains immutable and
+the recording is marked partial when its final sequence cannot be established.
 
 The browser fetches at most 6,000 samples/run, retaining at most that count in memory.
 Plots show at most about 1,000 points; full raw values stay in PostgreSQL. Server-side

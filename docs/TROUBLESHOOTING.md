@@ -13,8 +13,11 @@
   PostgreSQL holds the ownership lock for the controlling connection's lifetime.
 - Instrument fault: preserve/read the saved run evidence, then use Acknowledge fault.
   A new boot or reconnect never automatically repeats Start.
-- Partial recording: keep the warning and final/persisted sequences. Phase 1 cannot
-  reconstruct missing samples or retransmit from the engine.
+- Partial recording: keep the warning and final/persisted sequences. Same-boot
+  reconnect can recover retained samples; a new engine boot cannot reconstruct
+  a lost volatile tail. Never replace the warning with an assumed completion.
+- Failure demonstrations are absent: they require explicit `LAB_ENABLE_FAULTS=1`
+  on both local services. Hosted mode deliberately refuses these scenarios.
 - Browser refresh: recording continues independently; reopen Monitor or saved Review.
 - Tests cannot connect to TCP ports: stop the API first for protocol tests, since the
   engine permits only one controller and telemetry subscriber.

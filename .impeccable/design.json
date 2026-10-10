@@ -1,0 +1,589 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-10T10:32:24.372Z",
+  "title": "Design System: Remote Experiment Control Lab",
+  "extensions": {
+    "colorMeta": {
+      "blue": {
+        "role": "primary",
+        "displayName": "Instrument Blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.10225 266.59)",
+          "oklch(26.43% 0.10225 266.59)",
+          "oklch(37.86% 0.10225 266.59)",
+          "oklch(49.29% 0.10225 266.59)",
+          "oklch(60.71% 0.10225 266.59)",
+          "oklch(72.14% 0.10225 266.59)",
+          "oklch(83.57% 0.10225 266.59)",
+          "oklch(95.00% 0.10225 266.59)"
+        ]
+      },
+      "blue-hover": {
+        "role": "primary",
+        "displayName": "Deep Instrument Blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.08173 266.62)",
+          "oklch(26.43% 0.08173 266.62)",
+          "oklch(37.86% 0.08173 266.62)",
+          "oklch(49.29% 0.08173 266.62)",
+          "oklch(60.71% 0.08173 266.62)",
+          "oklch(72.14% 0.08173 266.62)",
+          "oklch(83.57% 0.08173 266.62)",
+          "oklch(95.00% 0.08173 266.62)"
+        ]
+      },
+      "copper": {
+        "role": "primary",
+        "displayName": "Copper",
+        "tonalRamp": [
+          "oklch(15.00% 0.13520 39.26)",
+          "oklch(26.43% 0.13520 39.26)",
+          "oklch(37.86% 0.13520 39.26)",
+          "oklch(49.29% 0.13520 39.26)",
+          "oklch(60.71% 0.13520 39.26)",
+          "oklch(72.14% 0.13520 39.26)",
+          "oklch(83.57% 0.13520 39.26)",
+          "oklch(95.00% 0.13520 39.26)"
+        ]
+      },
+      "chart-raw": {
+        "role": "primary",
+        "displayName": "Raw Response Blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.07558 266.72)",
+          "oklch(26.43% 0.07558 266.72)",
+          "oklch(37.86% 0.07558 266.72)",
+          "oklch(49.29% 0.07558 266.72)",
+          "oklch(60.71% 0.07558 266.72)",
+          "oklch(72.14% 0.07558 266.72)",
+          "oklch(83.57% 0.07558 266.72)",
+          "oklch(95.00% 0.07558 266.72)"
+        ]
+      },
+      "chart-filtered": {
+        "role": "primary",
+        "displayName": "Filtered Response Ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.11088 265.70)",
+          "oklch(26.43% 0.11088 265.70)",
+          "oklch(37.86% 0.11088 265.70)",
+          "oklch(49.29% 0.11088 265.70)",
+          "oklch(60.71% 0.11088 265.70)",
+          "oklch(72.14% 0.11088 265.70)",
+          "oklch(83.57% 0.11088 265.70)",
+          "oklch(95.00% 0.11088 265.70)"
+        ]
+      },
+      "chart-reference": {
+        "role": "primary",
+        "displayName": "Reference Copper",
+        "tonalRamp": [
+          "oklch(15.00% 0.13230 40.74)",
+          "oklch(26.43% 0.13230 40.74)",
+          "oklch(37.86% 0.13230 40.74)",
+          "oklch(49.29% 0.13230 40.74)",
+          "oklch(60.71% 0.13230 40.74)",
+          "oklch(72.14% 0.13230 40.74)",
+          "oklch(83.57% 0.13230 40.74)",
+          "oklch(95.00% 0.13230 40.74)"
+        ]
+      },
+      "stop-red": {
+        "role": "secondary",
+        "displayName": "Stop Red",
+        "tonalRamp": [
+          "oklch(15.00% 0.11749 29.59)",
+          "oklch(26.43% 0.11749 29.59)",
+          "oklch(37.86% 0.11749 29.59)",
+          "oklch(49.29% 0.11749 29.59)",
+          "oklch(60.71% 0.11749 29.59)",
+          "oklch(72.14% 0.11749 29.59)",
+          "oklch(83.57% 0.11749 29.59)",
+          "oklch(95.00% 0.11749 29.59)"
+        ]
+      },
+      "stop-hover": {
+        "role": "secondary",
+        "displayName": "Deep Stop Red",
+        "tonalRamp": [
+          "oklch(15.00% 0.09611 28.11)",
+          "oklch(26.43% 0.09611 28.11)",
+          "oklch(37.86% 0.09611 28.11)",
+          "oklch(49.29% 0.09611 28.11)",
+          "oklch(60.71% 0.09611 28.11)",
+          "oklch(72.14% 0.09611 28.11)",
+          "oklch(83.57% 0.09611 28.11)",
+          "oklch(95.00% 0.09611 28.11)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.05317 265.76)",
+          "oklch(26.43% 0.05317 265.76)",
+          "oklch(37.86% 0.05317 265.76)",
+          "oklch(49.29% 0.05317 265.76)",
+          "oklch(60.71% 0.05317 265.76)",
+          "oklch(72.14% 0.05317 265.76)",
+          "oklch(83.57% 0.05317 265.76)",
+          "oklch(95.00% 0.05317 265.76)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "tonalRamp": [
+          "oklch(15.00% 0.03700 265.87)",
+          "oklch(26.43% 0.03700 265.87)",
+          "oklch(37.86% 0.03700 265.87)",
+          "oklch(49.29% 0.03700 265.87)",
+          "oklch(60.71% 0.03700 265.87)",
+          "oklch(72.14% 0.03700 265.87)",
+          "oklch(83.57% 0.03700 265.87)",
+          "oklch(95.00% 0.03700 265.87)"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Mineral Ground",
+        "tonalRamp": [
+          "oklch(15.00% 0.00516 247.88)",
+          "oklch(26.43% 0.00516 247.88)",
+          "oklch(37.86% 0.00516 247.88)",
+          "oklch(49.29% 0.00516 247.88)",
+          "oklch(60.71% 0.00516 247.88)",
+          "oklch(72.14% 0.00516 247.88)",
+          "oklch(83.57% 0.00516 247.88)",
+          "oklch(95.00% 0.00516 247.88)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel Paper",
+        "tonalRamp": [
+          "oklch(15.00% 0.00171 247.84)",
+          "oklch(26.43% 0.00171 247.84)",
+          "oklch(37.86% 0.00171 247.84)",
+          "oklch(49.29% 0.00171 247.84)",
+          "oklch(60.71% 0.00171 247.84)",
+          "oklch(72.14% 0.00171 247.84)",
+          "oklch(83.57% 0.00171 247.84)",
+          "oklch(95.00% 0.00171 247.84)"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 89.88)",
+          "oklch(26.43% 0.00000 89.88)",
+          "oklch(37.86% 0.00000 89.88)",
+          "oklch(49.29% 0.00000 89.88)",
+          "oklch(60.71% 0.00000 89.88)",
+          "oklch(72.14% 0.00000 89.88)",
+          "oklch(83.57% 0.00000 89.88)",
+          "oklch(95.00% 0.00000 89.88)"
+        ]
+      },
+      "shell": {
+        "role": "neutral",
+        "displayName": "Blue Shell",
+        "tonalRamp": [
+          "oklch(15.00% 0.07560 265.58)",
+          "oklch(26.43% 0.07560 265.58)",
+          "oklch(37.86% 0.07560 265.58)",
+          "oklch(49.29% 0.07560 265.58)",
+          "oklch(60.71% 0.07560 265.58)",
+          "oklch(72.14% 0.07560 265.58)",
+          "oklch(83.57% 0.07560 265.58)",
+          "oklch(95.00% 0.07560 265.58)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Fine Line",
+        "tonalRamp": [
+          "oklch(15.00% 0.01396 258.35)",
+          "oklch(26.43% 0.01396 258.35)",
+          "oklch(37.86% 0.01396 258.35)",
+          "oklch(49.29% 0.01396 258.35)",
+          "oklch(60.71% 0.01396 258.35)",
+          "oklch(72.14% 0.01396 258.35)",
+          "oklch(83.57% 0.01396 258.35)",
+          "oklch(95.00% 0.01396 258.35)"
+        ]
+      },
+      "field-line": {
+        "role": "neutral",
+        "displayName": "Field Line",
+        "tonalRamp": [
+          "oklch(15.00% 0.01953 263.00)",
+          "oklch(26.43% 0.01953 263.00)",
+          "oklch(37.86% 0.01953 263.00)",
+          "oklch(49.29% 0.01953 263.00)",
+          "oklch(60.71% 0.01953 263.00)",
+          "oklch(72.14% 0.01953 263.00)",
+          "oklch(83.57% 0.01953 263.00)",
+          "oklch(95.00% 0.01953 263.00)"
+        ]
+      },
+      "status-neutral-text": {
+        "role": "secondary",
+        "displayName": "Status Neutral Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.06262 266.87)",
+          "oklch(26.43% 0.06262 266.87)",
+          "oklch(37.86% 0.06262 266.87)",
+          "oklch(49.29% 0.06262 266.87)",
+          "oklch(60.71% 0.06262 266.87)",
+          "oklch(72.14% 0.06262 266.87)",
+          "oklch(83.57% 0.06262 266.87)",
+          "oklch(95.00% 0.06262 266.87)"
+        ]
+      },
+      "status-neutral-bg": {
+        "role": "secondary",
+        "displayName": "Status Neutral Bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.01292 266.70)",
+          "oklch(26.43% 0.01292 266.70)",
+          "oklch(37.86% 0.01292 266.70)",
+          "oklch(49.29% 0.01292 266.70)",
+          "oklch(60.71% 0.01292 266.70)",
+          "oklch(72.14% 0.01292 266.70)",
+          "oklch(83.57% 0.01292 266.70)",
+          "oklch(95.00% 0.01292 266.70)"
+        ]
+      },
+      "status-live-text": {
+        "role": "secondary",
+        "displayName": "Status Live Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.11068 259.47)",
+          "oklch(26.43% 0.11068 259.47)",
+          "oklch(37.86% 0.11068 259.47)",
+          "oklch(49.29% 0.11068 259.47)",
+          "oklch(60.71% 0.11068 259.47)",
+          "oklch(72.14% 0.11068 259.47)",
+          "oklch(83.57% 0.11068 259.47)",
+          "oklch(95.00% 0.11068 259.47)"
+        ]
+      },
+      "status-live-bg": {
+        "role": "secondary",
+        "displayName": "Status Live Bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.02253 260.72)",
+          "oklch(26.43% 0.02253 260.72)",
+          "oklch(37.86% 0.02253 260.72)",
+          "oklch(49.29% 0.02253 260.72)",
+          "oklch(60.71% 0.02253 260.72)",
+          "oklch(72.14% 0.02253 260.72)",
+          "oklch(83.57% 0.02253 260.72)",
+          "oklch(95.00% 0.02253 260.72)"
+        ]
+      },
+      "status-complete-text": {
+        "role": "secondary",
+        "displayName": "Status Complete Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.06549 166.14)",
+          "oklch(26.43% 0.06549 166.14)",
+          "oklch(37.86% 0.06549 166.14)",
+          "oklch(49.29% 0.06549 166.14)",
+          "oklch(60.71% 0.06549 166.14)",
+          "oklch(72.14% 0.06549 166.14)",
+          "oklch(83.57% 0.06549 166.14)",
+          "oklch(95.00% 0.06549 166.14)"
+        ]
+      },
+      "status-complete-bg": {
+        "role": "secondary",
+        "displayName": "Status Complete Bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.01685 168.49)",
+          "oklch(26.43% 0.01685 168.49)",
+          "oklch(37.86% 0.01685 168.49)",
+          "oklch(49.29% 0.01685 168.49)",
+          "oklch(60.71% 0.01685 168.49)",
+          "oklch(72.14% 0.01685 168.49)",
+          "oklch(83.57% 0.01685 168.49)",
+          "oklch(95.00% 0.01685 168.49)"
+        ]
+      },
+      "status-stopped-text": {
+        "role": "secondary",
+        "displayName": "Status Stopped Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.07144 96.11)",
+          "oklch(26.43% 0.07144 96.11)",
+          "oklch(37.86% 0.07144 96.11)",
+          "oklch(49.29% 0.07144 96.11)",
+          "oklch(60.71% 0.07144 96.11)",
+          "oklch(72.14% 0.07144 96.11)",
+          "oklch(83.57% 0.07144 96.11)",
+          "oklch(95.00% 0.07144 96.11)"
+        ]
+      },
+      "status-stopped-bg": {
+        "role": "secondary",
+        "displayName": "Status Stopped Bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.02705 95.35)",
+          "oklch(26.43% 0.02705 95.35)",
+          "oklch(37.86% 0.02705 95.35)",
+          "oklch(49.29% 0.02705 95.35)",
+          "oklch(60.71% 0.02705 95.35)",
+          "oklch(72.14% 0.02705 95.35)",
+          "oklch(83.57% 0.02705 95.35)",
+          "oklch(95.00% 0.02705 95.35)"
+        ]
+      },
+      "status-fault-text": {
+        "role": "secondary",
+        "displayName": "Status Fault Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.12164 27.68)",
+          "oklch(26.43% 0.12164 27.68)",
+          "oklch(37.86% 0.12164 27.68)",
+          "oklch(49.29% 0.12164 27.68)",
+          "oklch(60.71% 0.12164 27.68)",
+          "oklch(72.14% 0.12164 27.68)",
+          "oklch(83.57% 0.12164 27.68)",
+          "oklch(95.00% 0.12164 27.68)"
+        ]
+      },
+      "status-fault-bg": {
+        "role": "secondary",
+        "displayName": "Status Fault Bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.01943 33.37)",
+          "oklch(26.43% 0.01943 33.37)",
+          "oklch(37.86% 0.01943 33.37)",
+          "oklch(49.29% 0.01943 33.37)",
+          "oklch(60.71% 0.01943 33.37)",
+          "oklch(72.14% 0.01943 33.37)",
+          "oklch(83.57% 0.01943 33.37)",
+          "oklch(95.00% 0.01943 33.37)"
+        ]
+      },
+      "status-uncertain-text": {
+        "role": "secondary",
+        "displayName": "Status Uncertain Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.09594 49.29)",
+          "oklch(26.43% 0.09594 49.29)",
+          "oklch(37.86% 0.09594 49.29)",
+          "oklch(49.29% 0.09594 49.29)",
+          "oklch(60.71% 0.09594 49.29)",
+          "oklch(72.14% 0.09594 49.29)",
+          "oklch(83.57% 0.09594 49.29)",
+          "oklch(95.00% 0.09594 49.29)"
+        ]
+      },
+      "status-uncertain-bg": {
+        "role": "secondary",
+        "displayName": "Status Uncertain Bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.02625 71.18)",
+          "oklch(26.43% 0.02625 71.18)",
+          "oklch(37.86% 0.02625 71.18)",
+          "oklch(49.29% 0.02625 71.18)",
+          "oklch(60.71% 0.02625 71.18)",
+          "oklch(72.14% 0.02625 71.18)",
+          "oklch(83.57% 0.02625 71.18)",
+          "oklch(95.00% 0.02625 71.18)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Page Heading",
+        "purpose": "Responsive main screen heading."
+      },
+      "headline": {
+        "displayName": "Section Heading",
+        "purpose": "Primary work-area headings; compact cards use the documented local sizes."
+      },
+      "title": {
+        "displayName": "Subsection Title",
+        "purpose": "Compact internal headings."
+      },
+      "body": {
+        "displayName": "Root Body",
+        "purpose": "Default interface text."
+      },
+      "label": {
+        "displayName": "Field Label",
+        "purpose": "Labelled form controls."
+      },
+      "data": {
+        "displayName": "Launch Total",
+        "purpose": "Duration and expected sample totals; use tabular numerals."
+      },
+      "provenance": {
+        "displayName": "Machine Provenance",
+        "purpose": "Run identifiers rather than general measurement text."
+      }
+    },
+    "shadows": [
+      {
+        "name": "history-selected",
+        "value": "inset 0 0 0 1px #8295be",
+        "purpose": "Inset boundary for a selected recorded-run button; not elevation."
+      }
+    ],
+    "motion": [
+      {
+        "name": "button-state",
+        "value": "background 160ms ease-out, color 160ms ease-out",
+        "purpose": "Button background and text hover transitions."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "transition: none !important; animation: none !important; scroll-behavior: auto !important;",
+        "purpose": "Applied globally under prefers-reduced-motion: reduce; the sculpture separately ignores pointer movement."
+      },
+      {
+        "name": "sculpture-pointer",
+        "value": "0.35 + ((clientX - left) / width - 0.5) * 0.8",
+        "purpose": "Original projected geometry turn in radians; pointer leave restores 0.35. No automatic orbit."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-desktop",
+        "value": "1050px"
+      },
+      {
+        "name": "stacked-mobile",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Start experiment",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Full-width primary action with the original inline SVG arrow; sample preview has no backend action.",
+      "html": "<button class=\"ds-primary\" type=\"button\">Start experiment<svg aria-hidden=\"true\" viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" fill=\"none\"><path d=\"M4 10h12M11 5l5 5-5 5\" stroke=\"currentColor\" stroke-width=\"1.5\"/></svg></button>",
+      "css": ".ds-primary{width:100%;min-height:48px;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:20px;border:0;border-radius:5px;background:var(--blue,#293e78);color:white;font-size:14px;font-weight:600;line-height:1.5;cursor:pointer;font-family:Manrope,\"Segoe UI\",sans-serif;transition:background 160ms ease-out,color 160ms ease-out;}.ds-primary:hover:enabled{background:#1d2d59}.ds-primary:disabled{opacity:.48;cursor:not-allowed}.ds-primary:focus-visible,.ds-stop:focus-visible,.ds-text:focus-visible,.ds-field input:focus-visible,.ds-navigation button:focus-visible,.ds-history:focus-visible{outline:2px solid var(--copper,#a94927);outline-offset:4px;}@media(prefers-reduced-motion:reduce){button{transition:none!important;animation:none!important;}}"
+    },
+    {
+      "name": "Stop experiment",
+      "kind": "button",
+      "refersTo": "button-stop",
+      "description": "Explicit stop action using the implemented SVG square and red hover state.",
+      "html": "<button class=\"ds-stop\" type=\"button\"><svg aria-hidden=\"true\" width=\"12\" height=\"12\" viewBox=\"0 0 12 12\"><rect x=\"1\" y=\"1\" width=\"10\" height=\"10\" fill=\"currentColor\"/></svg>Stop experiment</button>",
+      "css": ".ds-stop{background:#923d32;color:white;border:0;border-radius:5px;padding:13px 20px;display:flex;align-items:center;gap:10px;min-height:46px;font-size:14px;line-height:1.5;cursor:pointer;font-family:Manrope,\"Segoe UI\",sans-serif;transition:background 160ms ease-out,color 160ms ease-out;}.ds-stop:hover:enabled{background:#74312a}.ds-stop:disabled{opacity:.48;cursor:not-allowed}.ds-primary:focus-visible,.ds-stop:focus-visible,.ds-text:focus-visible,.ds-field input:focus-visible,.ds-navigation button:focus-visible,.ds-history:focus-visible{outline:2px solid var(--copper,#a94927);outline-offset:4px;}@media(prefers-reduced-motion:reduce){button{transition:none!important;animation:none!important;}}@media(max-width:760px){.ds-stop{padding:12px;font-size:12px}}"
+    },
+    {
+      "name": "Text action",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Subordinate underlined action used to add a recipe step.",
+      "html": "<button class=\"ds-text\" type=\"button\">Add a step</button>",
+      "css": ".ds-text{background:transparent;color:var(--blue,#293e78);border:0;padding:10px 0;font-size:12px;font-weight:700;line-height:1.5;text-decoration:underline;text-underline-offset:4px;cursor:pointer;font-family:Manrope,\"Segoe UI\",sans-serif;transition:background 160ms ease-out,color 160ms ease-out;}.ds-text:hover{color:var(--copper,#a94927)}.ds-text:disabled{opacity:.48;cursor:not-allowed}.ds-primary:focus-visible,.ds-stop:focus-visible,.ds-text:focus-visible,.ds-field input:focus-visible,.ds-navigation button:focus-visible,.ds-history:focus-visible{outline:2px solid var(--copper,#a94927);outline-offset:4px;}@media(prefers-reduced-motion:reduce){button{transition:none!important;animation:none!important;}}"
+    },
+    {
+      "name": "Recipe field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Labelled white field with the implemented border hover, blue focus border and copper focus-visible outline.",
+      "html": "<label class=\"ds-field\">Experiment name<input value=\"Stepped response\" type=\"text\"/></label>",
+      "css": ".ds-field{display:block;color:var(--ink,#24304c);font-size:12px;font-weight:600;line-height:1.5;font-family:Manrope,\"Segoe UI\",sans-serif;}.ds-field input{display:block;width:100%;min-width:0;padding:12px 13px;border:1px solid #cbd2df;border-radius:5px;background:#fff;color:var(--ink,#24304c);margin-top:8px;min-height:44px;font-size:12px;font-weight:600;line-height:1.5;caret-color:var(--copper,#a94927);font-family:Manrope,\"Segoe UI\",sans-serif;}.ds-field input:hover{border-color:#95a2bd}.ds-field input:focus{border-color:var(--blue,#293e78)}.ds-primary:focus-visible,.ds-stop:focus-visible,.ds-text:focus-visible,.ds-field input:focus-visible,.ds-navigation button:focus-visible,.ds-history:focus-visible{outline:2px solid var(--copper,#a94927);outline-offset:4px;}"
+    },
+    {
+      "name": "Console navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Native buttons with the Configure selection shown; responsive full-row treatment matches the console.",
+      "html": "<nav class=\"ds-navigation\" aria-label=\"Console\"><button class=\"ds-nav-item ds-nav-active\" type=\"button\">Configure</button><button class=\"ds-nav-item\" type=\"button\">Monitor</button><button class=\"ds-nav-item\" type=\"button\">Review</button></nav>",
+      "css": ".ds-navigation{display:flex;align-items:center;gap:5px;background:#25365f;padding:20px;color:#e8edf8;font-family:Manrope,\"Segoe UI\",sans-serif;}.ds-nav-item{background:transparent;color:#c6d0e5;border:0;border-radius:6px;padding:12px 22px;font-size:14px;line-height:1.5;cursor:pointer;font-family:Manrope,\"Segoe UI\",sans-serif;transition:background 160ms ease-out,color 160ms ease-out;}.ds-nav-item:hover{background:#3b4d75;color:white}.ds-nav-item.ds-nav-active{color:#25365f;background:#e6eaf2;font-weight:700}.ds-primary:focus-visible,.ds-stop:focus-visible,.ds-text:focus-visible,.ds-field input:focus-visible,.ds-navigation button:focus-visible,.ds-history:focus-visible{outline:2px solid var(--copper,#a94927);outline-offset:4px;}@media(prefers-reduced-motion:reduce){button{transition:none!important;animation:none!important;}}@media(max-width:760px){.ds-navigation{width:100%}.ds-nav-item{flex:1;padding:11px 14px}}"
+    },
+    {
+      "name": "Execution and recording labels",
+      "kind": "chip",
+      "refersTo": "status",
+      "description": "Separate text labels for execution and recording, shown with a partial recording example.",
+      "html": "<div class=\"ds-status-pair\"><span class=\"ds-pill ds-pill-complete\">completed</span><span class=\"ds-pill ds-pill-uncertain\">Data: partial · 3 samples missing</span></div>",
+      "css": ".ds-status-pair{display:flex;flex-wrap:wrap;gap:7px;align-items:center}.ds-pill{display:inline-flex;align-items:center;padding:5px 9px;border-radius:4px;font-size:10px;font-weight:600;background:#e2e6ef;color:#354366;white-space:normal;line-height:1.5;font-family:Manrope,\"Segoe UI\",sans-serif;}.ds-pill-running{color:#254b88;background:#e0e9f8}.ds-pill-complete{color:#2e624e;background:#e0eee8}.ds-pill-uncertain{color:#804420;background:#f4e6d6}.ds-pill-fault{color:#963d35;background:#f6e5e1}.ds-pill-stopped{color:#605421;background:#eee9d5}"
+    },
+    {
+      "name": "Instrument card",
+      "kind": "card",
+      "refersTo": "instrument-card",
+      "description": "Resting sample of the original projected SVG sculpture. The live React component rotates with pointer movement unless reduced motion is enabled; this self-contained preview is static.",
+      "html": "<section class=\"ds-instrument\"><div class=\"ds-instrument-top\"><h2>Response simulator</h2><span>SIM-01</span></div><div class=\"ds-sculpture\" aria-hidden=\"true\"><svg aria-hidden=\"true\" viewBox=\"0 0 360 216\" fill=\"none\"><ellipse cx=\"180\" cy=\"190\" rx=\"95\" ry=\"7\" fill=\"currentColor\" opacity=\"0.09\"/><path d=\"M24 108H100M260 108H336M180 6V24M180 190V210\" stroke=\"currentColor\" opacity=\"0.3\"/><polyline points=\"259.44,120.61 258.12,127.78 256.03,134.57 253.23,140.92 249.78,146.79 245.73,152.12 241.15,156.88 236.11,161.05 230.67,164.62 224.90,167.57 218.85,169.90 212.59,171.62 206.17,172.72 199.65,173.23 193.09,173.15 186.52,172.50 180.00,171.31 173.57,169.58 167.27,167.35 161.13,164.63 155.20,161.44 149.52,157.82 144.11,153.79 139.01,149.37 134.24,144.60 129.85,139.49 125.87,134.08 122.31,128.40 119.21,122.48 116.61,116.37 114.52,110.09 112.98,103.69 112.01,97.21 111.63,90.69 111.87,84.19 112.75,77.77 114.27,71.47 116.46,65.35 119.31,59.49 122.82,53.94 127.00,48.78 131.82,44.07 137.25,39.88 143.26,36.28 149.80,33.33 156.83,31.09 164.25,29.62 172.01,28.96 180.00,29.13 188.13,30.17 196.29,32.08 204.37,34.86 212.26,38.47 219.84,42.87 227.01,48.02 233.67,53.84 239.71,60.24 245.06,67.15 249.66,74.44 253.44,82.03 256.37,89.80 258.44,97.65 259.63,105.46 259.96,113.15 259.44,120.61\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"259.28,111.05 258.04,117.95 256.07,124.60 253.42,130.96 250.14,136.96 246.27,142.57 241.87,147.75 236.98,152.47 231.67,156.70 225.98,160.42 219.97,163.61 213.69,166.27 207.19,168.39 200.52,169.95 193.74,170.96 186.88,171.41 180.00,171.31 173.14,170.66 166.36,169.47 159.69,167.74 153.18,165.49 146.88,162.73 140.83,159.48 135.08,155.75 129.67,151.56 124.64,146.94 120.04,141.91 115.91,136.50 112.30,130.74 109.25,124.68 106.79,118.35 104.97,111.79 103.82,105.07 103.38,98.23 103.66,91.34 104.69,84.45 106.49,77.65 109.07,71.00 112.41,64.57 116.51,58.46 121.35,52.73 126.89,47.46 133.08,42.73 139.88,38.60 147.20,35.16 154.97,32.45 163.09,30.52 171.47,29.40 180.00,29.13 188.57,29.72 197.05,31.15 205.36,33.41 213.36,36.48 220.97,40.30 228.07,44.81 234.60,49.96 240.47,55.66 245.63,61.84 250.02,68.40 253.62,75.26 256.39,82.34 258.34,89.53 259.46,96.77 259.76,103.97 259.28,111.05\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"253.93,102.36 252.84,109.00 251.10,115.51 248.76,121.82 245.84,127.91 242.38,133.73 238.43,139.23 234.01,144.40 229.16,149.19 223.93,153.59 218.36,157.56 212.48,161.08 206.34,164.13 199.98,166.70 193.44,168.76 186.77,170.30 180.00,171.31 173.19,171.77 166.37,171.68 159.60,171.03 152.93,169.81 146.41,168.02 140.08,165.66 134.01,162.74 128.25,159.26 122.85,155.24 117.88,150.69 113.38,145.63 109.42,140.11 106.06,134.14 103.34,127.79 101.32,121.09 100.04,114.10 99.55,106.89 99.86,99.54 101.01,92.12 103.01,84.72 105.86,77.43 109.54,70.34 114.04,63.54 119.30,57.14 125.27,51.21 131.89,45.85 139.08,41.13 146.74,37.13 154.77,33.89 163.06,31.46 171.51,29.87 180.00,29.13 188.41,29.25 196.65,30.22 204.60,31.99 212.17,34.54 219.28,37.82 225.86,41.76 231.84,46.30 237.17,51.38 241.81,56.91 245.74,62.83 248.93,69.06 251.39,75.52 253.10,82.15 254.09,88.88 254.36,95.63 253.93,102.36\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"244.55,94.94 243.65,101.35 242.21,107.70 240.25,113.96 237.81,120.08 234.91,126.04 231.57,131.79 227.82,137.30 223.68,142.54 219.18,147.48 214.34,152.09 209.20,156.35 203.79,160.22 198.13,163.68 192.25,166.70 186.20,169.25 180.00,171.31 173.70,172.84 167.33,173.84 160.94,174.26 154.58,174.10 148.29,173.32 142.14,171.92 136.18,169.89 130.48,167.20 125.09,163.87 120.08,159.89 115.52,155.27 111.48,150.05 108.03,144.24 105.22,137.90 103.13,131.07 101.81,123.82 101.29,116.23 101.62,108.38 102.81,100.36 104.88,92.30 107.82,84.29 111.60,76.45 116.19,68.90 121.51,61.75 127.51,55.10 134.09,49.06 141.16,43.70 148.61,39.10 156.34,35.31 164.21,32.38 172.14,30.32 180.00,29.13 187.70,28.82 195.14,29.35 202.24,30.68 208.93,32.78 215.15,35.59 220.84,39.04 225.97,43.07 230.50,47.63 234.43,52.63 237.73,58.01 240.40,63.72 242.44,69.68 243.87,75.84 244.68,82.14 244.91,88.52 244.55,94.94\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"232.20,88.98 231.50,95.20 230.38,101.42 228.87,107.61 226.97,113.74 224.70,119.78 222.07,125.69 219.11,131.45 215.83,137.03 212.23,142.39 208.35,147.51 204.19,152.35 199.78,156.89 195.13,161.09 190.27,164.91 185.22,168.33 180.00,171.31 174.65,173.80 169.19,175.78 163.66,177.21 158.11,178.04 152.58,178.25 147.11,177.79 141.77,176.64 136.61,174.77 131.70,172.16 127.10,168.79 122.88,164.67 119.12,159.80 115.89,154.20 113.25,147.91 111.28,140.98 110.02,133.49 109.53,125.52 109.84,117.17 110.97,108.55 112.93,99.80 115.70,91.05 119.24,82.45 123.50,74.12 128.42,66.21 133.91,58.83 139.89,52.10 146.24,46.11 152.86,40.93 159.65,36.62 166.50,33.21 173.32,30.72 180.00,29.13 186.47,28.44 192.67,28.60 198.52,29.56 203.97,31.29 209.00,33.71 213.56,36.77 217.65,40.41 221.23,44.55 224.32,49.14 226.90,54.11 228.98,59.41 230.57,64.98 231.67,70.77 232.30,76.73 232.48,82.81 232.20,88.98\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"217.79,84.57 217.30,90.64 216.52,96.75 215.45,102.88 214.11,109.00 212.51,115.09 210.66,121.11 208.55,127.04 206.21,132.84 203.64,138.50 200.84,143.99 197.84,149.26 194.63,154.29 191.22,159.05 187.64,163.50 183.90,167.60 180.00,171.31 175.97,174.58 171.84,177.37 167.63,179.63 163.36,181.31 159.07,182.36 154.81,182.73 150.61,182.37 146.52,181.24 142.61,179.30 138.91,176.51 135.51,172.87 132.46,168.35 129.82,162.98 127.66,156.77 126.04,149.79 125.00,142.10 124.60,133.79 124.85,124.99 125.79,115.83 127.39,106.45 129.66,97.02 132.55,87.71 136.01,78.67 139.98,70.06 144.37,62.03 149.12,54.69 154.12,48.14 159.29,42.46 164.54,37.70 169.80,33.90 174.97,31.04 180.00,29.13 184.83,28.13 189.41,28.00 193.70,28.69 197.68,30.14 201.31,32.28 204.59,35.05 207.51,38.39 210.06,42.23 212.25,46.52 214.07,51.19 215.53,56.20 216.64,61.49 217.42,67.01 217.86,72.72 217.98,78.59 217.79,84.57\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"202.05,81.72 201.77,87.69 201.33,93.73 200.72,99.82 199.95,105.93 199.03,112.04 197.97,118.12 196.76,124.14 195.40,130.09 193.91,135.94 192.29,141.65 190.53,147.20 188.66,152.56 186.66,157.69 184.54,162.55 182.32,167.10 180.00,171.31 177.59,175.11 175.10,178.46 172.56,181.31 169.96,183.60 167.34,185.26 164.72,186.24 162.13,186.47 159.60,185.89 157.15,184.46 154.84,182.13 152.70,178.86 150.77,174.63 149.09,169.45 147.72,163.33 146.68,156.32 146.02,148.49 145.76,139.94 145.93,130.80 146.52,121.22 147.55,111.37 148.99,101.43 150.82,91.57 153.01,82.00 155.51,72.87 158.26,64.34 161.21,56.54 164.30,49.58 167.48,43.54 170.68,38.46 173.87,34.37 176.99,31.27 180.00,29.13 182.87,27.93 185.59,27.61 188.11,28.11 190.44,29.37 192.56,31.33 194.47,33.91 196.15,37.07 197.62,40.72 198.88,44.82 199.92,49.30 200.76,54.12 201.40,59.23 201.84,64.58 202.09,70.14 202.16,75.86 202.05,81.72\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"185.61,80.43 185.54,86.35 185.42,92.35 185.27,98.42 185.08,104.52 184.85,110.64 184.58,116.75 184.27,122.82 183.93,128.83 183.55,134.76 183.14,140.57 182.69,146.25 182.21,151.75 181.70,157.05 181.16,162.10 180.60,166.87 180.00,171.31 179.38,175.36 178.74,178.98 178.08,182.11 177.41,184.69 176.73,186.65 176.05,187.92 175.37,188.44 174.71,188.15 174.07,186.98 173.46,184.87 172.89,181.79 172.38,177.72 171.94,172.63 171.58,166.56 171.30,159.54 171.13,151.65 171.06,142.98 171.10,133.68 171.26,123.89 171.53,113.80 171.91,103.59 172.40,93.47 172.98,83.62 173.63,74.23 174.36,65.46 175.13,57.44 175.94,50.28 176.76,44.06 177.60,38.82 178.42,34.60 179.22,31.38 180.00,29.13 180.74,27.83 181.43,27.42 182.08,27.84 182.67,29.01 183.21,30.89 183.69,33.39 184.12,36.46 184.49,40.03 184.81,44.04 185.07,48.44 185.28,53.17 185.44,58.20 185.55,63.47 185.62,68.96 185.63,74.62 185.61,80.43\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"168.99,80.68 169.12,86.61 169.35,92.62 169.65,98.69 170.03,104.80 170.48,110.91 171.01,117.01 171.61,123.08 172.29,129.08 173.03,134.99 173.84,140.78 174.72,146.44 175.65,151.91 176.66,157.17 177.72,162.19 178.83,166.92 180.00,171.31 181.21,175.31 182.47,178.88 183.76,181.96 185.08,184.48 186.41,186.37 187.74,187.59 189.06,188.05 190.36,187.70 191.61,186.48 192.80,184.33 193.90,181.21 194.89,177.10 195.76,172.00 196.47,165.92 197.00,158.90 197.34,151.02 197.48,142.38 197.39,133.10 197.08,123.36 196.55,113.31 195.81,103.16 194.86,93.09 193.74,83.30 192.46,73.96 191.05,65.24 189.53,57.26 187.96,50.14 186.34,43.95 184.71,38.75 183.10,34.55 181.52,31.35 180.00,29.13 178.55,27.85 177.19,27.46 175.93,27.89 174.76,29.08 173.70,30.97 172.75,33.49 171.91,36.58 171.18,40.16 170.56,44.19 170.04,48.60 169.62,53.36 169.31,58.40 169.09,63.69 168.97,69.19 168.93,74.86 168.99,80.68\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"152.71,82.48 153.06,88.47 153.61,94.53 154.37,100.63 155.32,106.75 156.46,112.85 157.79,118.91 159.29,124.92 160.97,130.83 162.82,136.62 164.83,142.28 167.00,147.75 169.33,153.02 171.80,158.05 174.41,162.80 177.14,167.24 180.00,171.31 182.96,174.97 186.01,178.17 189.14,180.85 192.31,182.97 195.51,184.47 198.71,185.28 201.87,185.34 204.96,184.62 207.93,183.04 210.73,180.58 213.33,177.21 215.67,172.90 217.69,167.66 219.35,161.51 220.61,154.51 221.40,146.72 221.72,138.24 221.52,129.19 220.80,119.73 219.56,110.01 217.82,100.21 215.60,90.51 212.95,81.08 209.93,72.09 206.58,63.70 202.99,56.03 199.23,49.19 195.35,43.25 191.43,38.26 187.53,34.24 183.70,31.21 180.00,29.13 176.46,27.98 173.12,27.71 170.00,28.26 167.12,29.57 164.50,31.58 162.14,34.22 160.04,37.42 158.22,41.12 156.66,45.27 155.36,49.80 154.31,54.67 153.52,59.83 152.97,65.22 152.66,70.82 152.57,76.59 152.71,82.48\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"137.33,85.84 137.89,91.95 138.78,98.09 140.00,104.24 141.52,110.37 143.34,116.44 145.45,122.43 147.84,128.31 150.49,134.06 153.41,139.63 156.57,145.01 159.97,150.16 163.59,155.05 167.41,159.65 171.44,163.91 175.64,167.81 180.00,171.31 184.50,174.35 189.10,176.90 193.79,178.91 198.52,180.34 203.27,181.13 207.98,181.25 212.61,180.65 217.10,179.29 221.40,177.15 225.44,174.18 229.16,170.39 232.49,165.76 235.37,160.31 237.72,154.08 239.48,147.11 240.61,139.48 241.05,131.27 240.77,122.61 239.76,113.61 238.01,104.43 235.54,95.21 232.39,86.11 228.62,77.30 224.28,68.90 219.46,61.07 214.24,53.91 208.73,47.53 203.02,42.01 197.21,37.38 191.38,33.70 185.62,30.95 180.00,29.13 174.59,28.22 169.45,28.18 164.63,28.95 160.15,30.47 156.04,32.69 152.33,35.55 149.02,38.97 146.13,42.90 143.64,47.27 141.57,52.03 139.91,57.12 138.64,62.49 137.75,68.09 137.25,73.87 137.11,79.80 137.33,85.84\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"123.50,90.76 124.27,97.03 125.49,103.29 127.16,109.51 129.24,115.64 131.72,121.65 134.58,127.52 137.81,133.21 141.39,138.69 145.29,143.93 149.51,148.89 154.00,153.56 158.77,157.90 163.78,161.88 169.00,165.46 174.42,168.61 180.00,171.31 185.71,173.51 191.51,175.18 197.37,176.29 203.24,176.81 209.08,176.71 214.82,175.95 220.42,174.52 225.82,172.38 230.95,169.54 235.73,165.97 240.11,161.68 244.01,156.69 247.35,151.03 250.07,144.72 252.11,137.82 253.40,130.40 253.91,122.55 253.59,114.36 252.42,105.94 250.40,97.41 247.55,88.90 243.89,80.54 239.47,72.46 234.36,64.80 228.64,57.65 222.40,51.14 215.74,45.35 208.78,40.36 201.62,36.22 194.36,32.96 187.13,30.60 180.00,29.13 173.08,28.55 166.43,28.82 160.13,29.90 154.24,31.74 148.80,34.28 143.85,37.46 139.41,41.21 135.50,45.47 132.13,50.18 129.31,55.28 127.03,60.69 125.29,66.38 124.08,72.28 123.39,78.34 123.20,84.51 123.50,90.76\" stroke=\"currentColor\" opacity=\"0.32\" stroke-width=\"0.7\"/><polyline points=\"235.93,56.09 236.74,54.53 236.97,52.98 236.63,51.46 235.77,49.97 234.40,48.54 232.58,47.18 230.32,45.88 227.68,44.66 224.68,43.53 221.37,42.49 217.77,41.55 213.93,40.70 209.87,39.95 205.63,39.31 201.23,38.77 196.71,38.33 192.09,38.00 187.41,37.78 182.68,37.67 177.94,37.66 173.21,37.76 168.51,37.97 163.89,38.28 159.35,38.70 154.94,39.23 150.67,39.86 146.59,40.60 142.71,41.43 139.08,42.36 135.73,43.39 132.69,44.51 130.00,45.72 127.69,47.00 125.81,48.36 124.38,49.78 123.45,51.26 123.05,52.78 123.20,54.33 123.93,55.89 125.27,57.44 127.23,58.98 129.80,60.47 133.00,61.90 136.79,63.24 141.16,64.48 146.06,65.59 151.44,66.55 157.24,67.34 163.36,67.96 169.74,68.38 176.28,68.60 182.87,68.61 189.41,68.42 195.82,68.03 201.98,67.43 207.82,66.66 213.26,65.72 218.23,64.63 222.67,63.41 226.54,62.08 229.82,60.66 232.47,59.17 234.51,57.64 235.93,56.09\" stroke=\"currentColor\" opacity=\"0.5\" stroke-width=\"0.8\"/><polyline points=\"252.27,79.48 252.98,76.99 252.94,74.54 252.18,72.16 250.77,69.86 248.75,67.66 246.18,65.57 243.10,63.61 239.58,61.79 235.65,60.10 231.37,58.55 226.78,57.16 221.92,55.92 216.82,54.83 211.54,53.89 206.09,53.11 200.51,52.48 194.83,52.00 189.08,51.68 183.28,51.52 177.47,51.51 171.68,51.65 165.92,51.95 160.23,52.41 154.63,53.02 149.17,53.78 143.85,54.69 138.73,55.77 133.84,56.99 129.21,58.36 124.89,59.89 120.91,61.56 117.33,63.37 114.20,65.31 111.56,67.38 109.46,69.57 107.97,71.86 107.12,74.23 106.98,76.67 107.59,79.15 108.99,81.65 111.21,84.14 114.28,86.58 118.19,88.94 122.95,91.17 128.52,93.25 134.87,95.12 141.91,96.76 149.56,98.12 157.71,99.18 166.24,99.91 175.00,100.29 183.85,100.31 192.63,99.98 201.19,99.29 209.40,98.28 217.13,96.95 224.25,95.35 230.69,93.51 236.37,91.45 241.24,89.24 245.26,86.89 248.44,84.46 250.77,81.98 252.27,79.48\" stroke=\"currentColor\" opacity=\"0.5\" stroke-width=\"0.8\"/><polyline points=\"259.05,100.99 259.68,97.79 259.48,94.66 258.51,91.62 256.84,88.69 254.52,85.90 251.62,83.27 248.19,80.80 244.29,78.51 239.97,76.39 235.30,74.47 230.30,72.73 225.03,71.18 219.53,69.83 213.83,68.67 207.96,67.70 201.97,66.92 195.88,66.34 189.72,65.94 183.51,65.74 177.30,65.73 171.09,65.91 164.92,66.28 158.82,66.84 152.81,67.59 146.93,68.53 141.21,69.67 135.67,71.00 130.37,72.52 125.34,74.23 120.61,76.13 116.25,78.22 112.30,80.49 108.80,82.94 105.83,85.55 103.43,88.32 101.67,91.23 100.61,94.25 100.30,97.38 100.82,100.57 102.20,103.79 104.48,107.01 107.71,110.18 111.89,113.26 117.03,116.19 123.09,118.91 130.03,121.38 137.77,123.55 146.22,125.35 155.25,126.75 164.71,127.72 174.44,128.22 184.28,128.25 194.04,127.81 203.54,126.90 212.64,125.56 221.17,123.80 229.01,121.68 236.06,119.25 242.24,116.55 247.49,113.65 251.80,110.59 255.15,107.43 257.56,104.21 259.05,100.99\" stroke=\"currentColor\" opacity=\"0.5\" stroke-width=\"0.8\"/><polyline points=\"259.44,120.61 260.06,116.96 259.85,113.38 258.87,109.91 257.18,106.57 254.85,103.38 251.92,100.38 248.47,97.56 244.55,94.94 240.22,92.53 235.52,90.33 230.50,88.35 225.21,86.58 219.68,85.04 213.95,83.71 208.07,82.61 202.05,81.72 195.94,81.06 189.75,80.61 183.53,80.37 177.29,80.36 171.05,80.56 164.86,80.98 158.74,81.62 152.71,82.48 146.80,83.56 141.06,84.85 135.50,86.37 130.18,88.10 125.12,90.06 120.37,92.23 115.99,94.61 112.01,97.21 108.50,100.00 105.50,102.98 103.09,106.14 101.31,109.46 100.24,112.92 99.92,116.49 100.43,120.14 101.81,123.82 104.10,127.50 107.33,131.13 111.53,134.65 116.68,138.00 122.77,141.12 129.74,143.95 137.53,146.42 146.02,148.49 155.10,150.09 164.62,151.20 174.41,151.78 184.30,151.81 194.12,151.31 203.68,150.27 212.83,148.72 221.40,146.72 229.29,144.29 236.37,141.51 242.58,138.42 247.86,135.10 252.18,131.60 255.54,127.98 257.95,124.30 259.44,120.61\" stroke=\"currentColor\" opacity=\"0.5\" stroke-width=\"0.8\"/><polyline points=\"254.51,138.27 255.19,134.47 255.10,130.73 254.28,127.09 252.78,123.58 250.66,120.23 247.98,117.06 244.79,114.08 241.15,111.31 237.09,108.75 232.68,106.41 227.95,104.30 222.96,102.42 217.73,100.77 212.30,99.35 206.71,98.17 201.00,97.22 195.18,96.50 189.29,96.02 183.36,95.77 177.41,95.76 171.48,95.97 165.58,96.43 159.76,97.11 154.02,98.03 148.42,99.18 142.97,100.57 137.71,102.19 132.68,104.04 127.92,106.12 123.46,108.43 119.36,110.96 115.66,113.71 112.40,116.66 109.65,119.81 107.46,123.14 105.88,126.63 104.97,130.25 104.78,133.98 105.35,137.77 106.75,141.60 109.00,145.42 112.12,149.17 116.12,152.79 121.01,156.23 126.74,159.43 133.28,162.32 140.55,164.85 148.47,166.95 156.91,168.59 165.74,169.71 174.82,170.30 183.99,170.34 193.09,169.82 201.96,168.76 210.46,167.19 218.45,165.15 225.81,162.67 232.45,159.83 238.29,156.66 243.29,153.25 247.41,149.65 250.65,145.91 253.01,142.10 254.51,138.27\" stroke=\"currentColor\" opacity=\"0.5\" stroke-width=\"0.8\"/><polyline points=\"244.26,153.77 245.04,150.19 245.15,146.66 244.61,143.20 243.48,139.85 241.80,136.64 239.60,133.57 236.93,130.68 233.85,127.98 230.38,125.47 226.57,123.18 222.46,121.10 218.09,119.23 213.50,117.60 208.71,116.19 203.77,115.01 198.69,114.07 193.52,113.35 188.28,112.87 182.99,112.62 177.69,112.61 172.41,112.83 167.16,113.28 161.97,113.96 156.89,114.88 151.92,116.02 147.11,117.40 142.49,119.01 138.09,120.84 133.95,122.89 130.10,125.16 126.59,127.64 123.45,130.32 120.72,133.19 118.46,136.23 116.71,139.43 115.50,142.76 114.89,146.20 114.91,149.73 115.60,153.30 116.99,156.88 119.09,160.42 121.94,163.89 125.51,167.22 129.81,170.36 134.80,173.27 140.44,175.89 146.66,178.17 153.39,180.06 160.53,181.52 167.99,182.53 175.64,183.05 183.36,183.08 191.02,182.62 198.51,181.68 205.70,180.27 212.49,178.43 218.79,176.21 224.50,173.63 229.58,170.76 233.97,167.64 237.64,164.33 240.58,160.88 242.78,157.34 244.26,153.77\" stroke=\"currentColor\" opacity=\"0.5\" stroke-width=\"0.8\"/><polyline points=\"227.02,166.57 227.83,163.77 228.14,160.98 227.97,158.22 227.36,155.51 226.31,152.90 224.85,150.38 223.02,147.99 220.84,145.73 218.35,143.62 215.57,141.68 212.53,139.91 209.26,138.31 205.79,136.90 202.15,135.68 198.37,134.66 194.47,133.84 190.48,133.21 186.42,132.79 182.32,132.58 178.21,132.56 174.11,132.75 170.05,133.15 166.05,133.75 162.13,134.54 158.33,135.54 154.67,136.73 151.18,138.12 147.89,139.69 144.81,141.44 142.00,143.36 139.46,145.45 137.24,147.68 135.37,150.06 133.86,152.56 132.76,155.17 132.08,157.86 131.86,160.62 132.11,163.41 132.85,166.21 134.09,168.99 135.84,171.72 138.10,174.35 140.85,176.87 144.09,179.22 147.79,181.38 151.90,183.31 156.39,184.98 161.21,186.36 166.28,187.42 171.55,188.14 176.93,188.52 182.36,188.54 187.76,188.21 193.04,187.53 198.15,186.51 203.00,185.17 207.53,183.54 211.70,181.65 215.45,179.52 218.75,177.19 221.57,174.69 223.90,172.07 225.71,169.35 227.02,166.57\" stroke=\"currentColor\" opacity=\"0.5\" stroke-width=\"0.8\"/><ellipse cx=\"180\" cy=\"108\" rx=\"129\" ry=\"34\" transform=\"rotate(-24 180 108)\" stroke=\"#eca876\" stroke-width=\"1.5\"/><circle cx=\"295\" cy=\"56\" r=\"4\" fill=\"#eca876\"/><circle cx=\"180\" cy=\"108\" r=\"3\" fill=\"currentColor\"/></svg></div><p class=\"ds-caption\">Signal model · illustrative geometry</p><div class=\"ds-instrument-state\"><span>Observed state</span><span class=\"ds-pill\">ready</span></div></section>",
+      "css": ".ds-instrument{position:relative;overflow:hidden;border-radius:8px;background:#25365f;color:#e4eafa;padding:23px 25px 18px;line-height:1.5;font-family:Manrope,\"Segoe UI\",sans-serif;}.ds-instrument-top{display:flex;align-items:center;justify-content:space-between;gap:16px}.ds-instrument-top h2{margin:0;font-size:15px;font-weight:500;letter-spacing:-.025em}.ds-instrument-top>span{font-size:10px;letter-spacing:.08em;white-space:nowrap;color:#b5c3e3}.ds-sculpture{height:183px;color:#c1d1f3;margin:-6px -12px -5px;touch-action:pan-y}.ds-sculpture svg{width:100%;height:100%}.ds-caption{color:#c0cce4;font-size:10px;text-align:center;margin:0 0 18px}.ds-instrument-state{border-top:1px solid #586787;padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px}.ds-pill{display:inline-flex;align-items:center;padding:5px 9px;border-radius:4px;font-size:10px;font-weight:600;background:#e2e6ef;color:#354366;white-space:normal;line-height:1.5;font-family:Manrope,\"Segoe UI\",sans-serif;}.ds-pill-running{color:#254b88;background:#e0e9f8}.ds-pill-complete{color:#2e624e;background:#e0eee8}.ds-pill-uncertain{color:#804420;background:#f4e6d6}.ds-pill-fault{color:#963d35;background:#f6e5e1}.ds-pill-stopped{color:#605421;background:#eee9d5}.ds-instrument-state .ds-pill{background:#e6ecf5;color:#2b3c62}@media(max-width:760px){.ds-instrument{padding:22px 24px 18px}.ds-sculpture{height:175px}}"
+    },
+    {
+      "name": "Recorded run selection",
+      "kind": "button",
+      "refersTo": "history-item",
+      "description": "Selected recorded-run row with a tonal background, inset selection boundary and explicit state labels.",
+      "html": "<button class=\"ds-history ds-history-selected\" type=\"button\"><span><strong>Stepped response</strong><small>10/10/2026 · 11:20:00</small></span><span class=\"ds-status-pair\"><span class=\"ds-pill ds-pill-complete\">completed</span><span class=\"ds-pill ds-pill-complete\">Data: complete</span></span></button>",
+      "css": ".ds-history{width:100%;display:flex;flex-direction:column;text-align:left;gap:12px;padding:18px 20px;border:0;border-top:1px solid var(--line,#d4dae3);background:transparent;color:var(--ink,#24304c);line-height:1.5;cursor:pointer;font-family:Manrope,\"Segoe UI\",sans-serif;transition:background 160ms ease-out,color 160ms ease-out;}.ds-history:hover,.ds-history-selected{background:#e0e7f4}.ds-history-selected{box-shadow:inset 0 0 0 1px #8295be}.ds-history strong{display:block;font-size:12px;overflow-wrap:anywhere}.ds-history small{display:block;color:var(--muted,#5e687e);font-size:10px;margin-top:5px}.ds-status-pair{display:flex;flex-wrap:wrap;gap:7px;align-items:center}.ds-pill{display:inline-flex;align-items:center;padding:5px 9px;border-radius:4px;font-size:10px;font-weight:600;background:#e2e6ef;color:#354366;white-space:normal;line-height:1.5;font-family:Manrope,\"Segoe UI\",sans-serif;}.ds-pill-running{color:#254b88;background:#e0e9f8}.ds-pill-complete{color:#2e624e;background:#e0eee8}.ds-pill-uncertain{color:#804420;background:#f4e6d6}.ds-pill-fault{color:#963d35;background:#f6e5e1}.ds-pill-stopped{color:#605421;background:#eee9d5}.ds-history .ds-pill{font-size:9px;padding:4px 7px}.ds-primary:focus-visible,.ds-stop:focus-visible,.ds-text:focus-visible,.ds-field input:focus-visible,.ds-navigation button:focus-visible,.ds-history:focus-visible{outline:2px solid var(--copper,#a94927);outline-offset:4px;}@media(prefers-reduced-motion:reduce){button{transition:none!important;animation:none!important;}}"
+    },
+    {
+      "name": "Proportional recipe preview",
+      "kind": "custom",
+      "description": "Default recipe example: equal ten-second durations and exact setpoint-to-height mapping, with no artificial minimum bar height.",
+      "html": "<div class=\"ds-preview\" aria-label=\"Recipe setpoint preview\"><div class=\"ds-segment\"><span class=\"ds-bar-one\"></span><small>0.25</small></div><div class=\"ds-segment\"><span class=\"ds-bar-two\"></span><small>0.80</small></div><div class=\"ds-segment\"><span class=\"ds-bar-three\"></span><small>0.35</small></div></div>",
+      "css": ".ds-preview{display:flex;height:65px;gap:4px;align-items:end;margin-top:16px;margin-bottom:20px;line-height:1.5;font-family:Manrope,\"Segoe UI\",sans-serif;}.ds-segment{flex:10000;min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:end;height:65px}.ds-segment span{display:block;position:relative;background:#d9e1f2}.ds-segment span::before{content:\"\";position:absolute;inset:-1px 0 auto;height:2px;background:var(--blue,#293e78)}.ds-bar-one{height:11.25px}.ds-bar-two{height:36px}.ds-bar-three{height:15.75px}.ds-segment small{color:var(--muted,#5e687e);font-size:10px;margin-top:5px;text-align:center;font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Saved step sequence",
+      "kind": "custom",
+      "refersTo": "saved-recipe",
+      "description": "Semantic table of immutable saved recipe values, matching the restored evidence section.",
+      "html": "<table class=\"ds-saved-recipe\"><caption>Saved step sequence</caption><thead><tr><th scope=\"col\">Step</th><th scope=\"col\">Setpoint (a.u.)</th><th scope=\"col\">Duration (s)</th></tr></thead><tbody><tr><th scope=\"row\">1</th><td>0.25</td><td>10</td></tr><tr><th scope=\"row\">2</th><td>0.8</td><td>10</td></tr><tr><th scope=\"row\">3</th><td>0.35</td><td>10</td></tr></tbody></table>",
+      "css": ".ds-saved-recipe{margin-top:24px;width:100%;border-collapse:collapse;text-align:left;font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink,#24304c);line-height:1.5;font-family:Manrope,\"Segoe UI\",sans-serif;}.ds-saved-recipe caption{text-align:left;font-size:14px;font-weight:600;margin-bottom:10px}.ds-saved-recipe th,.ds-saved-recipe td{padding:9px 4px;border-bottom:1px solid var(--line,#d4dae3)}.ds-saved-recipe thead th{color:var(--muted,#5e687e);font-weight:500}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Science Gallery Console",
+    "overview": "The Science Gallery Console combines a cool mineral ground with an ink-blue shell, copper highlights and precise measurements. Manrope gives controls and headings a shared, quiet character; fine borders and tonal changes separate work areas without floating surfaces.\n\nThe working console remains the first screen. Configure, Monitor and Review share the same compact operational language: measured values use tabular numerals, status labels remain explicit, and the original wireframe sculpture is labelled illustrative. It supplies spatial character without representing instrument state.\n\nThis record describes the completed replacement visual world in the current source. The finish-review handoff recorded an initial fix disposition, then a pass / ship verdict after the saved recipe steps, proportional preview, raw trace contrast and SVG control icons were corrected. That review scope is not a full UX or accessibility certification.",
+    "keyCharacteristics": [
+      "Cool mineral surfaces and an ink-blue working shell.",
+      "Copper marks emphasis, focus and reference relationships.",
+      "Flat bordered panels with compact, gently rounded controls.",
+      "Tabular measurements, explicit state text and saved evidence.",
+      "One original projected SVG sculpture, with reduced-motion support."
+    ],
+    "rules": [
+      {
+        "name": "The Operational Accent Rule",
+        "body": "Use blue for primary controls and measurement structure; use copper for focus, step indices and reference emphasis. State colors communicate labelled outcomes.",
+        "section": "colors"
+      },
+      {
+        "name": "The Measured Type Rule",
+        "body": "Keep changing measurements tabular. Reserve monospace for machine provenance such as run IDs; ordinary controls and numbers remain in Manrope.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Surface Rule",
+        "body": "Separate panels with tone and fine borders. The selected history inset is a selection boundary, while the sculpture alone supplies illustrative spatial depth.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep the working controls, observed state and saved evidence visually primary.",
+      "Do use text labels alongside state colors and distinguish execution from recording.",
+      "Do preserve the proportional recipe preview: duration controls width and normalized setpoint controls height.",
+      "Do retain the saved step table with step, setpoint and duration columns.",
+      "Do keep focus visible and honor reduced-motion preferences.",
+      "Do label the sphere as illustrative and keep its appearance separate from instrument state."
+    ],
+    "donts": [
+      "Don't use the sculpture as a loading, connection or measurement indicator.",
+      "Don't replace the self-hosted Manrope display face with a system display face.",
+      "Don't substitute text glyphs or icon fonts for the implemented inline SVG control icons.",
+      "Don't add lifted card shadows or promotional overlines to the operational console.",
+      "Don't infer complete recording from a completed execution label."
+    ]
+  }
+}

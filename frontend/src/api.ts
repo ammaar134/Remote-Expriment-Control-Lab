@@ -5,6 +5,7 @@ export type Start = {
   name: string;
   recipe: Recipe;
   alpha: number;
+  scenario?: string;
 };
 export type Device = {
   id: string;
@@ -13,12 +14,19 @@ export type Device = {
   boot_id: string;
   error: string;
   observation_age_s: number | null;
+  recovering?: boolean;
+  faults_enabled?: boolean;
+  diagnostics?: { command_retries: number; telemetry_reconnects: number };
   observation: {
     state: string;
     run_id: string;
     final_seq: number;
     output: number | null;
     reason: string;
+    retained_samples?: number;
+    retention_capacity?: number;
+    acknowledged_seq?: number;
+    telemetry_ready?: boolean;
   };
 };
 export type Sample = {
@@ -44,6 +52,7 @@ export type Run = {
     filter: { alpha: number; version: string };
     engine_version: string;
     protocol_version: number;
+    scenario?: string;
   };
   events?: { id: number; kind: string; created_at: string; detail: unknown }[];
 };

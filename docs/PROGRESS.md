@@ -1,151 +1,109 @@
 # Progress
 
-- Last working milestone: Phase 1 single-device workflow through React, FastAPI,
-  the separate C++ simulator and PostgreSQL. Complete and stopped runs demonstrated.
-- Current gate: Phase 1 discussion completed; wait for an explicit request to start
-  Phase 2. The real app is deployed on free cloud hosting so it
-  can be operated from another computer. The live workflow is verified; the earlier
-  document preview was insufficient. Fast pace requested; no interview scheduling.
-- Repository: public ammaar134/Remote-Expriment-Control-Lab; local codex/phase-1.
-  Initial publication to main approved. Verify the current remote commit and its
-  GitHub Actions result when resuming; do not infer remote CI from local checks.
-- Commits: 7e5716b contains the independently tested engine/protocol slice;
-  1dd0edf contains the application checkpoint. Final C++, Python, frontend,
-  API and real-browser checks passed against 1dd0edf with a clean working tree.
-- Runtime: http://127.0.0.1:8000 via Docker Compose; database history is persistent.
-  Docker startup was restored with reversible local socket-directory backups.
+## Phase 2 checkpoint — 2026-10-10, Pacific/Auckland
 
-## Cloud deployment
+Phase 2 and the concurrent redesign were explicitly authorized. The operator
+keeps the working console first and delegated visual selection. Phase 3 has not
+started; stop here for the checkpoint discussion after publication/deployment.
 
-- Live URL: https://remote-experiment-control-lab.onrender.com.
-- Render service srv-db4jf9mi0phs73ctof0g is Free, Singapore, one Docker instance,
-  automatic deployment off. Neon Free project young-hall-53222910 is Singapore,
-  PostgreSQL 17, database experiment_lab, fixed 0.25 CU. Use the existing resources.
-- Initial application commit: 201f5d0b49f4f73b8babe34ab0b9bbf543c6d83d.
-  Exact-commit Linux CI passed:
-  https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/37970946408.
-- Direct/unpooled DATABASE_URL with full TLS verification is stored only in Render.
-  Sign in as operator using LAB_PASSWORD from the service's Environment page.
-  Do not print secrets or request them in chat. See docs/HOSTING.md.
-- Verified the real HTTPS deployment on 2026-10-10 (Pacific/Auckland):
-  authenticated API/database ready and C++ connected; signed-out UI/API/docs denied;
-  cross-origin mutations denied; API smoke passed with 100 ordered durable samples,
-  EMA, immutable snapshot, duplicate/conflicting Start and confirmed/repeated Stop.
-- Playwright through the real URL passed Configure -> Start -> live samples ->
-  refresh -> complete saved Review -> confirmed Stop. Desktop and 390-pixel mobile
-  screenshots were visually checked. Four synthetic runs (two completed, two
-  stopped) have complete recordings, with 462 samples in total.
-- Initial verification redeploy dep-db4jopss728c73fj042g was live. A new C++ boot was observed;
-  authenticated history remained readable with identical sample counts/bounds.
-  Completed and stopped API-smoke runs survived with 100 and 29 ordered samples.
-- Cloud began with empty history; no local database history was uploaded.
-  Local Compose services and secrets were preserved. Phase 2 remains paused.
-- Free-plan limits: Render can sleep/restart; Neon has a monthly compute allowance.
-  Platform interruption can interrupt a run; Phase 2 recovery is not implemented.
-  No paid resources or upgrades were created.
+Repository: public ammaar134/Remote-Expriment-Control-Lab. Work branch:
+`codex/phase-2`; publication to `main` and the existing free hosting are approved.
+Core reliability commit: `2a79d1dce989c5ac31da6c590b87ada2abb62dc8`.
+Its complete Linux CI passed, including C++ sanitizers:
+https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/38045003326.
+Console/documentation publication and final exact-commit CI are being finalized.
 
-## Hosted idle database fix (2026-10-10, Pacific/Auckland)
+## Implemented
 
-- The signed-in browser reported an interrupted lab connection and disabled Start.
-  Render logs showed `/api/device` returning 200 but `/api/runs` returning 503.
-  Neon had suspended idle compute, closing the API's database ownership session.
-- The hosted controller now checks its existing connection every 20 seconds,
-  with a ten-second deadline. Connection failure cancels instrument control and
-  exits through the supervisor; a fresh container must reacquire ownership.
-  Local Compose behavior is unchanged. This is a Phase 1 hosting correction;
-  Phase 2 recovery remains paused.
-- Local verification passed: 18 backend tests, Ruff, mypy, hosted image build,
-  and the real authenticated hosted smoke test. The latter survives a 45-second
-  PostgreSQL idle-session timeout with no API traffic for 50 seconds, records
-  completed/stopped experiments, deliberately terminates its disposable database
-  owner session, and verifies unchanged saved history after restarting.
-  Container overlap/ownership, access boundaries and child shutdown also passed.
-- The fix is live as application commit ee7db8a65e81c524bd269e8a9682515fee0940d1,
-  Render deploy dep-db4k5mks728c73fkch1g. Public health returns 200 and a fresh
-  database ownership session was observed. The four existing cloud recordings
-  were intact before deployment, with 462 samples and unchanged sequence bounds.
-  The application commit's Linux CI is tracked at
-  https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/37981633138.
-  The operator has been asked to reload and confirm live samples; credentials
-  were not requested in chat or changed as part of this fix.
+- C++ retains at most 512 unacknowledged samples, releases only the acknowledged
+  committed prefix, and replays the same samples/timestamps after data reconnect.
+  Overflow and controller lease loss fault-stop with zero simulated output.
+- Python retries the identical command, records the result, acknowledges only
+  after PostgreSQL commit, restores EMA from the saved cursor, and reconciles boot
+  and run identity before enabling control. An old cached reply cannot overwrite
+  a newer live observation. Pre-Phase-2 HTTP Start IDs remain compatible.
+- Same-boot recovery drains retained data after controller/API failures. Changed
+  boot preserves the committed prefix and labels unresolved execution unknown and
+  missing recording partial. Start is never replayed after a new boot.
+- Local-only deliberate scenarios: lost Start reply, telemetry interruption,
+  controller loss and rolled-back database write. Hosted mode refuses them.
+- Console-first redesign: mineral background, ink-blue shell, copper accents,
+  self-hosted Manrope, original projected wireframe with reduced-motion support,
+  actual recovery diagnostics and the selected run's immutable step sequence.
 
-## Latest validation (2026-10-10, Pacific/Auckland)
+## Verified evidence
 
-Passed against the Phase 1 implementation:
+- C++ build/CTest, real socket framing/deduplication/ACK/replay checks, retention
+  overflow and responsive Stop, and silent-controller lease expiry passed locally.
+- 21 Python tests passed with real PostgreSQL, including independent-connection
+  visibility before ACK, duplicate ingestion, rollback on a sequence gap and stale
+  cached reply handling. Ruff, formatting and mypy passed.
+- Production frontend build, six behavior tests, formatting and npm audit passed.
+  Both real Edge browser workflows passed; desktop and 390-pixel mobile captures
+  are in docs/screenshots. CI separately runs Chromium.
+- Hosted image checks passed: authentication/origin guards, private engine ports,
+  idle connection renewal, real ownership-session loss and supervisor shutdown,
+  exclusive deployment handoff, saved history after replacement and child failure.
+- Impeccable full finish review requested four fixes; its subsequent verdict scored
+  all four resolved and returned `ship` at that scope. A separate quality-bar card
+  was not retained, so its ceiling assessment was limited to the saved contract.
+  See DESIGN.md and docs/DESIGN_BRIEF.md for design and reference provenance.
 
-- C++ build and six doctest cases, also under address/undefined-behavior sanitizers.
-- Real TCP framing, duplicate/conflicting commands, stale/repeated Stop,
-  disconnect and oversized-frame checks.
-- Real telemetry backlog: Stop within the test's one-second deadline; bounded
-  queue overflow faulted with simulated output zero.
-- Four Python tests, including real PostgreSQL immutability/uniqueness constraints
-  and terminal-state-before-final-data reconciliation; Ruff and mypy passed.
-- React/TypeScript production build, six behavior tests and Prettier checks.
-- API smoke: complete run with 100 durable ordered samples, EMA verification,
-  duplicate/conflicting Start and a confirmed stopped run.
-- Playwright using installed Edge: live acquisition, browser refresh, saved review,
-  confirmed Stop and desktop/mobile layouts. Genuine screenshots visually checked.
-- npm audit: zero reported vulnerabilities. Staged scans and the two-commit full
-  history scan reported no leaks; repeat for subsequent commits.
+Local reliability evidence from the final core run (synthetic, retained in the
+local PostgreSQL history; not uploaded to the cloud):
 
-All local functional checks passed. Commit de28ae5 passed every Linux CI gate,
-including real Chromium flow: https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/37920817898.
-That revision fixed an ambiguous chart/legend selector. The checkpoint follow-up
-clarifies data status and adds tests for missing counts and unknown final sequence.
-Check the latest commit's CI result at
-https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions.
-Production frontend build reports a roughly 603 kB uncompressed JavaScript chunk;
-loading optimization remains for Phase 3. Local browser validation uses Edge.
+| Scenario | Run | Observed evidence |
+| --- | --- | --- |
+| Lost Start reply | e85c2477-f169-4bf0-a9a1-4ed49e999d67 | One execution, two identical command attempts, 200 committed samples |
+| Telemetry interruption | 0652e3c1-6604-4c3f-b5c7-4390b1c16de1 | Same-boot replay; 200 samples identical to baseline and correct EMA |
+| Controller disconnect | 19803a84-6f34-4a4b-9979-dae0ff101c06 | Fault-stop, zero output, complete retained recording |
+| Database transaction failure | 17171bee-db15-4c3a-88b2-3c361ee5892e | Transaction rolled back, no premature ACK, retained data recovered |
+| API restart | 5b2cdc4e-e4ab-4e03-8d5e-eee50e920ac2 | Same boot reconciled, no automatic restart, complete retained recording |
+| Engine restart | 3ef2f765-af18-4d06-8a09-bcbd0c73ee6a | Changed boot, immutable saved prefix, unknown execution and partial data |
 
-## Checkpoint discussion
+## Cloud
 
-- Command acceptance, observed RUNNING, and a committed sample prove different
-  things. The browser displays observations; C++ owns execution; PostgreSQL owns
-  durable records. Closing the browser does not stop a healthy backend-owned run.
-- A terminal engine status can arrive before final telemetry on the other socket.
-  For final sequence 99 with committed sequences 0-98, show completed execution
-  with Data: finalizing. After the existing three-second drain deadline, show
-  Data: partial with one missing sample. Receipt/commit of the final sample allows
-  Data: complete. Unknown final sequence must not invent a missing count.
-- The user delegated this presentation decision; it is implemented in Status and
-  covered by behavior tests. No claim about the user's proficiency is implied.
-- The sequence-99 example above is hypothetical, not an observed lost sample.
-  A follow-up database audit found all 18 existing runs complete. A fresh
-  `py tests/api_smoke.py` passed; the subsequent audit found 20 complete runs and
-  zero inconsistencies between sample counts, bounds, persisted and final sequence.
-- The user reported that the inline preview did not load on their remote laptop.
-  A private ChatGPT Page now stores the read-only captured preview and native
-  Configure/Review screenshots as a fallback. Cloud content and file access were
-  verified. The user confirmed it opens but needs a live cloud app, so hosting
-  is now the pending prerequisite. The private Page link stays out of this repo.
-  Phase 2 has not started.
+Live URL: https://remote-experiment-control-lab.onrender.com.
+Render service `srv-db4jf9mi0phs73ctof0g` is Free, Singapore, one Docker instance,
+automatic deployment off. Neon Free project `young-hall-53222910`, database
+`experiment_lab`, PostgreSQL 17, Singapore. Reuse these existing resources.
+Direct/unpooled DATABASE_URL with full TLS verification stays in Render.
+Sign in as `operator` using LAB_PASSWORD from the Render Environment page.
+Never print secrets or request them in chat. See docs/HOSTING.md.
 
-## Reproduce
+Pre-Phase-2 deployment: `ee7db8a65e81c524bd269e8a9682515fee0940d1`.
+Before the Phase 2 release, the cloud audit found four saved runs, 462 samples and
+zero active/pending recordings. The earlier private Page was only a screenshot
+preview; the Render URL is the actual remotely controllable application.
 
-From the repository root (PowerShell; Docker running):
+## Walkthrough and checkpoint discussion
 
-```powershell
-py scripts/setup.py
-docker compose up -d --build --wait
-docker compose build backend-test
-docker compose run --rm backend-test sh -c 'pytest -q && ruff check . && ruff format --check . && mypy lab'
-py tests/api_smoke.py
-$env:PLAYWRIGHT_CHANNEL='msedge'
-node frontend/node_modules/@playwright/test/cli.js test --config frontend/playwright.config.ts
-```
+- `Instrument.call` encodes the request once and retries those same bytes. A lost
+  response is not proof that Start failed. A new command ID could start twice.
+- `Orchestrator.ingest` commits samples and the contiguous cursor in one database
+  transaction, then sends ACK. A socket receipt alone is not durability.
+- `Server::acknowledge` and `pump` retain only the bounded uncommitted
+  tail and replay original data. The independent control connection remains usable.
+- `Orchestrator.reconcile` compares boot/run identity before restoring ownership
+  and never automatically starts an old experiment on a new engine boot.
+- Execution and recording stay separate. Completed execution with missing tail
+  data is finalizing, then partial after ten seconds; it becomes complete only
+  when the contiguous committed cursor reaches the known final sequence.
 
-Frontend checks from `frontend/`: `npm ci`, `npm run format:check`,
-`npm run build`, `npm test`, `npm audit --audit-level=high`. Use Node 24.21.0.
-See docs/TESTING.md for exact standalone TCP and sanitizer commands; those socket
-checks require stopping the API to release its controlling connection.
+Questions for this gate: Why must ACK follow commit? Why must a timed-out Start
+retry keep its command ID, while a changed boot must not silently rerun it?
 
-## Next and limits
+## Reproduce and limits
 
-- Next: Phase 2 only when explicitly requested; cloud deployment is complete.
-  Publishing target main is approved.
-- Phase 2 adds durable telemetry acknowledgements/retransmission and broad failure
-  reconciliation/injection. A dropped Phase 1 stream cannot recover missing data.
-- CSV/replay, complete recipe management and two-device timing are later phases.
-- One controlling API worker; cloud deployment verified; repository license undecided.
-- Pointers: docs/ARCHITECTURE.md, docs/PROTOCOL.md, docs/DATA.md,
-  instrument/src/engine.cpp, backend/lab/orchestrator.py, frontend/src/App.tsx.
+See docs/TESTING.md for normal, fault, TCP, sanitizer and hosted commands.
+Local faults default off; tests use the explicit LAB_ENABLE_FAULTS=1 setting.
+The write-failure demonstration injects a transaction exception; a separate
+hosted test terminates the real database ownership session.
+
+Retention is volatile and bounded: 512 samples is 5.12 seconds at 100 Hz. It cannot
+promise lossless recovery from arbitrary outages or a replaced engine process.
+This is one simulator and one controlling API worker, with best-effort scheduling.
+No physical equipment or hardware emergency stop is implemented. Free hosting may
+sleep or restart. CSV/replay, fuller recipe management, richer analysis and two-
+device timing belong to later phases. The ~607 kB uncompressed chart bundle still
+has a build size warning. Repository license remains undecided.

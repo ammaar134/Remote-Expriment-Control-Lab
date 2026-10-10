@@ -17,6 +17,11 @@ import {
   type Sample,
   type Start,
 } from "./api";
+import {
+  InstrumentSculpture,
+  ArrowIcon,
+  WaveMark,
+} from "./InstrumentSculpture";
 
 const defaults: Recipe = {
   sample_rate_hz: 50,
@@ -85,7 +90,9 @@ export function StopControl({
       disabled={!available || busy}
       onClick={onStop}
     >
-      <span aria-hidden="true">■</span>{" "}
+      <svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12">
+        <rect x="1" y="1" width="10" height="10" fill="currentColor" />
+      </svg>{" "}
       {busy ? "Stop requested…" : "Stop experiment"}
     </button>
   );
@@ -115,13 +122,13 @@ function SignalChart({ samples }: { samples: Sample[] }) {
             <CartesianGrid
               strokeDasharray="3 5"
               vertical={false}
-              stroke="#e2e8e6"
+              stroke="#d9dce3"
             />
             <XAxis
               dataKey="logical_s"
               type="number"
               domain={[0, "dataMax"]}
-              tickFormatter={(v) => Number(v).toFixed(0) + "s"}
+              tickFormatter={(v) => Number(Number(v).toFixed(2)) + "s"}
               axisLine={false}
               tickLine={false}
             />
@@ -140,7 +147,7 @@ function SignalChart({ samples }: { samples: Sample[] }) {
             <Line
               dataKey="response"
               name="Raw response (a.u.)"
-              stroke="#96bbb0"
+              stroke="#5e719f"
               dot={false}
               strokeWidth={1}
               isAnimationActive={false}
@@ -148,7 +155,7 @@ function SignalChart({ samples }: { samples: Sample[] }) {
             <Line
               dataKey="filtered"
               name="EMA (a.u.)"
-              stroke="#087f6b"
+              stroke="#263e7d"
               dot={false}
               strokeWidth={2.5}
               isAnimationActive={false}
@@ -156,7 +163,7 @@ function SignalChart({ samples }: { samples: Sample[] }) {
             <Line
               dataKey="reference"
               name="Reference (a.u.)"
-              stroke="#d59c49"
+              stroke="#b35531"
               dot={false}
               strokeWidth={1.3}
               isAnimationActive={false}
@@ -165,7 +172,7 @@ function SignalChart({ samples }: { samples: Sample[] }) {
         </ResponsiveContainer>
       ) : (
         <div className="chart-empty">
-          <span className="wave">∿</span>
+          <WaveMark />
           <strong>Ready for a response</strong>
           <p>Recorded measurements will appear here when a run starts.</p>
         </div>
@@ -186,6 +193,7 @@ export function App() {
   const [recipe, setRecipe] = useState<Recipe>(defaults);
   const [name, setName] = useState("Stepped response");
   const [alpha, setAlpha] = useState(0.15);
+  const [scenario, setScenario] = useState("normal");
   const [error, setError] = useState("");
   const [connectionError, setConnectionError] = useState("");
   const [starting, setStarting] = useState(false);
@@ -289,6 +297,8 @@ export function App() {
     alpha <= 1;
   const ready =
     device?.connected &&
+    !device.recovering &&
+    !runs.some((item) => ["recording", "draining"].includes(item.recording)) &&
     ["IDLE", "STOPPED", "COMPLETED"].includes(device.observation.state);
   async function start() {
     if (starting) return;
@@ -299,6 +309,7 @@ export function App() {
       name: name.trim(),
       recipe,
       alpha,
+      scenario,
     };
     try {
       const result = await api<{ run_id: string }>("/runs", pending.current);
@@ -349,39 +360,28 @@ export function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <a className="brand" href="#configure">
-          <span className="brand-mark">∿</span>
+          <span className="brand-mark">
+            <WaveMark />
+          </span>
           <span>
-            EXPERIMENT
-            <br />
-            <b>CONTROL LAB</b>
+            Remote Experiment
+            <b>Control Lab</b>
           </span>
         </a>
-        <p className="nav-label">WORKSPACE</p>
         <nav aria-label="Main navigation">
-          {["configure", "monitor", "review"].map((item, index) => (
+          {["configure", "monitor", "review"].map((item) => (
             <button
               key={item}
               className={view === item ? "nav-item active" : "nav-item"}
+              aria-current={view === item ? "page" : undefined}
               onClick={() => navigate(item)}
             >
-              <span className="nav-number">0{index + 1}</span>
               {item[0].toUpperCase() + item.slice(1)}
-              <span className="nav-arrow">↗</span>
             </button>
           ))}
         </nav>
         <div className="sidebar-note">
-          <span className="mini-dot" /> LOCAL SIMULATION
-          <p>
-            A small window into the signals.
-            <br />
-            No physical equipment connected.
-          </p>
-        </div>
-        <div className="sidebar-footer">
-          ONE INSTRUMENT
-          <br />
-          <span>Build 0.1 / Phase 1</span>
+          <span className="mini-dot" /> Simulation workspace
         </div>
       </aside>
       <main>
@@ -399,13 +399,12 @@ export function App() {
         <div className="workspace">
           <div className="page-heading">
             <div>
-              <p className="eyebrow">REMOTE EXPERIMENT CONTROL</p>
               <h1>
                 {view === "configure"
-                  ? "Make a little discovery."
+                  ? "Shape the experiment."
                   : view === "monitor"
                     ? "Follow the response."
-                    : "Every run tells a story."}
+                    : "Return to the evidence."}
               </h1>
               <p className="subtitle">
                 {view === "configure"
@@ -415,11 +414,18 @@ export function App() {
                     : "Return to the exact configuration and measurements you recorded."}
               </p>
             </div>
-            <span className="simulation-label">SIMULATED / a.u.</span>
+            <span className="simulation-label">
+              One instrument · Two channels
+            </span>
           </div>
           {(error || connectionError) && (
             <div className="alert" role="alert">
               {error || connectionError}
+            </div>
+          )}
+          {device?.error && !connectionError && (
+            <div className="alert" role="status">
+              {device.error}
             </div>
           )}
           {device?.observation.state === "FAULTED" && (
@@ -436,7 +442,6 @@ export function App() {
             <div className="configure-grid">
               <section className="panel recipe-panel">
                 <div className="panel-title">
-                  <span className="section-index">01</span>
                   <div>
                     <h2>Experiment recipe</h2>
                     <p>A first-order response with seeded measurement noise.</p>
@@ -540,7 +545,19 @@ export function App() {
                         pending.current = null;
                       }}
                     >
-                      ×
+                      <svg
+                        aria-hidden="true"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                      >
+                        <path
+                          d="m4 4 8 8M12 4l-8 8"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                        />
+                      </svg>
                     </button>
                   </div>
                 ))}
@@ -558,7 +575,7 @@ export function App() {
                     pending.current = null;
                   }}
                 >
-                  + Add a step
+                  Add a step
                 </button>
                 <label className="filter-label">
                   EMA smoothing <span>{alpha.toFixed(2)}</span>
@@ -581,14 +598,12 @@ export function App() {
               <div className="configure-side">
                 <section className="instrument-card">
                   <div className="instrument-top">
-                    <span className="chip-icon">⌁</span>
+                    <h2>Response simulator</h2>
                     <span className="mini-label">SIM-01</span>
                   </div>
-                  <h2>Response simulator</h2>
-                  <p>
-                    Two channels. One reproducible signal.
-                    <br />
-                    An intentionally simple instrument.
+                  <InstrumentSculpture />
+                  <p className="sculpture-caption">
+                    Signal model · illustrative geometry
                   </p>
                   <div className="instrument-state">
                     <span>Observed state</span>
@@ -600,7 +615,7 @@ export function App() {
                   </div>
                 </section>
                 <section className="panel launch-panel">
-                  <p className="eyebrow">RUN PREVIEW</p>
+                  <h2>Ready to observe</h2>
                   <div className="run-numbers">
                     <div>
                       <strong>
@@ -625,7 +640,9 @@ export function App() {
                     {recipe.steps.map((s, i) => (
                       <div key={i} style={{ flex: s.duration_ms }}>
                         <span
-                          style={{ height: Math.max(4, s.setpoint * 90) }}
+                          style={{
+                            height: Math.max(0, Math.min(1, s.setpoint)) * 45,
+                          }}
                         />
                         <small>{s.setpoint.toFixed(2)}</small>
                       </div>
@@ -653,12 +670,48 @@ export function App() {
                       : pending.current
                         ? "Retry the same Start"
                         : "Start experiment"}
-                    <span>↗</span>
+                    <ArrowIcon />
                   </button>
                   <p className="fine-print">
                     Configuration is saved before Start is sent.
                   </p>
                 </section>
+                {device?.faults_enabled && (
+                  <section className="fault-panel">
+                    <details>
+                      <summary>
+                        Failure demonstrations <span>Local simulation</span>
+                      </summary>
+                      <p>
+                        The scenario is saved with the recipe. It affects only
+                        this simulated run.
+                      </p>
+                      <label htmlFor="failure-scenario">Scenario</label>
+                      <select
+                        id="failure-scenario"
+                        value={scenario}
+                        onChange={(event) => {
+                          setScenario(event.target.value);
+                          pending.current = null;
+                        }}
+                      >
+                        <option value="normal">Normal acquisition</option>
+                        <option value="lost_start_ack">
+                          Lose the first Start reply
+                        </option>
+                        <option value="telemetry_reconnect">
+                          Interrupt telemetry for one second
+                        </option>
+                        <option value="controller_disconnect">
+                          Disconnect the controller
+                        </option>
+                        <option value="database_write_failure">
+                          Roll back one database write
+                        </option>
+                      </select>
+                    </details>
+                  </section>
+                )}
               </div>
             </div>
           )}
@@ -667,7 +720,7 @@ export function App() {
             <>
               <div className="monitor-bar">
                 <div>
-                  <span className="eyebrow">OBSERVED INSTRUMENT</span>
+                  <h2>Observed instrument</h2>
                   <Status
                     state={
                       device?.connected ? device.observation.state : "UNKNOWN"
@@ -717,6 +770,39 @@ export function App() {
                   </span>
                 </div>
               </section>
+              {device && (
+                <section
+                  className="diagnostics"
+                  aria-label="Recording diagnostics"
+                >
+                  <div>
+                    <span>Retained on device</span>
+                    <strong>
+                      {device.observation.retained_samples ?? "—"}{" "}
+                      <small>
+                        / {device.observation.retention_capacity ?? 512}
+                      </small>
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Commit acknowledged</span>
+                    <strong>
+                      {device.observation.acknowledged_seq ?? "—"}
+                      <small> sequence</small>
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Command retries</span>
+                    <strong>{device.diagnostics?.command_retries ?? 0}</strong>
+                  </div>
+                  <div>
+                    <span>Data reconnects</span>
+                    <strong>
+                      {device.diagnostics?.telemetry_reconnects ?? 0}
+                    </strong>
+                  </div>
+                </section>
+              )}
               {run && <RunEvidence run={run} />}
             </>
           )}
@@ -763,7 +849,6 @@ export function App() {
                     <section className="panel signal-panel">
                       <div className="signal-heading">
                         <div>
-                          <p className="eyebrow">SAVED OBSERVATIONS</p>
                           <h2>{run.snapshot?.name}</h2>
                         </div>
                         <Status
@@ -784,7 +869,7 @@ export function App() {
                   </>
                 ) : (
                   <section className="panel review-empty">
-                    <span className="wave">⌁</span>
+                    <WaveMark />
                     <h2>A record worth keeping.</h2>
                     <p>
                       Select a run to inspect its measurements,
@@ -820,7 +905,7 @@ function RunEvidence({ run }: { run: Run }) {
       )}
       <div className="evidence-grid">
         <div>
-          <p className="eyebrow">PROVENANCE</p>
+          <h3>Provenance</h3>
           <dl>
             <dt>Run ID</dt>
             <dd className="mono">{run.id}</dd>
@@ -828,6 +913,14 @@ function RunEvidence({ run }: { run: Run }) {
             <dd>
               {run.snapshot?.recipe.steps.length} steps ·{" "}
               {run.snapshot?.recipe.sample_rate_hz} Hz
+            </dd>
+            <dt>Scenario</dt>
+            <dd>{readable(run.snapshot?.scenario || "normal")}</dd>
+            <dt>Random seed</dt>
+            <dd>{run.snapshot?.recipe.seed}</dd>
+            <dt>Filter</dt>
+            <dd>
+              {run.snapshot?.filter.version} · α {run.snapshot?.filter.alpha}
             </dd>
             <dt>Outcome</dt>
             <dd>
@@ -840,9 +933,30 @@ function RunEvidence({ run }: { run: Run }) {
               {run.final_seq ?? "unknown"}
             </dd>
           </dl>
+          {run.snapshot && (
+            <table className="saved-recipe">
+              <caption>Saved step sequence</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Step</th>
+                  <th scope="col">Setpoint (a.u.)</th>
+                  <th scope="col">Duration (s)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {run.snapshot.recipe.steps.map((step, index) => (
+                  <tr key={index}>
+                    <th scope="row">{index + 1}</th>
+                    <td>{step.setpoint}</td>
+                    <td>{step.duration_ms / 1000}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
         <div>
-          <p className="eyebrow">EVENT TIMELINE</p>
+          <h3>Event timeline</h3>
           <ol className="timeline">
             {run.events?.map((event) => (
               <li key={event.id}>

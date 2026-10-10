@@ -28,3 +28,5 @@ playwright-report/
 .DS_Store
 Thumbs.db
 *.tsbuildinfo
+.impeccable/*
+!.impeccable/design.json

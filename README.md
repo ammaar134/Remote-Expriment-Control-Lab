@@ -16,8 +16,9 @@ Stop waits for the C++ simulator's actual confirmation.
 
 The app runs on Render Free with persistent PostgreSQL on Neon Free.
 It can take roughly a minute to wake after inactivity. Saved history survives
-container replacement. Platform restarts can interrupt active experiments;
-Phase 2 recovery remains future work.
+container replacement. Platform restarts can interrupt active experiments. Phase 2
+recovers retained samples on the same engine boot and explicitly marks missing
+evidence after a changed boot; it never automatically reruns an experiment.
 
 ## Run locally
 
@@ -52,7 +53,7 @@ loss. Reconnecting does not rerun the experiment. Acknowledge the instrument fau
 before the next run. History remains visible while the instrument is disconnected.
 See [troubleshooting](docs/TROUBLESHOOTING.md) for safe recovery.
 
-## What is working in Phase 1
+## What is working through Phase 2
 
 - Real control/telemetry TCP connections to a continuously running C++ process.
 - One state owner, deterministic logical ticks, bounded queues, confirmed zero
@@ -62,6 +63,17 @@ See [troubleshooting](docs/TROUBLESHOOTING.md) for safe recovery.
   ordered EMA processing, event history and final-sequence recording reconciliation.
 - Configure, Monitor and basic saved Review, including browser refresh during runs.
 - Tests using real sockets, PostgreSQL, the complete API path and a real browser.
+- Post-commit cumulative acknowledgements, bounded 512-sample retention and
+  same-boot retransmission without changing original samples or timestamps.
+- Identical command retries, telemetry reconnect, controller/engine/API restart
+  reconciliation, and explicit partial/unknown outcomes when evidence is lost.
+- A console-first ink-blue, mineral and copper redesign, with an original
+  pointer-responsive 3D wireframe and reduced-motion support.
+- Local-only failure demonstrations and live retention/retry diagnostics.
+
+Enable local demonstrations with `LAB_ENABLE_FAULTS=1` on both Compose services,
+then rebuild/recreate them. See [reliability checks](docs/TESTING.md). Hosted mode
+always disables deliberate failure scenarios.
 
 The simulator has no physical equipment connection. Stop is **not a hardware
 emergency stop**. Timing is best effort; this does not demonstrate hard real-time
@@ -106,7 +118,8 @@ file is not evidence of a successful remote CI run; see [progress](docs/PROGRESS
 - [Dependencies](docs/DEPENDENCIES.md)
 - [Current checkpoint](docs/PROGRESS.md)
 
-Next phases add durable telemetry acknowledgements/retransmission, comprehensive
-failure reconciliation, CSV/replay, fuller recipe management and an educational
+Next phases add CSV/replay, fuller recipe management and an educational
 two-device clock-offset/drift demonstration. They are not advertised as complete.
+The [design contract](docs/DESIGN_BRIEF.md) records Impeccable and the public
+21st.dev visual reference; the sphere implementation is original.
 No repository license has been selected.

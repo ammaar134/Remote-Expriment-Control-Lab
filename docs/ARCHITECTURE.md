@@ -1,6 +1,6 @@
-# Architecture decisions - Phase 1
+# Architecture decisions - Phase 2
 
-These decisions describe the implemented Phase 1 slice. See PROGRESS.md for
+These decisions describe the implemented single-instrument reliability slice. See PROGRESS.md for
 validation results and the boundary of the current milestone.
 
 ## Ownership and data flow
@@ -32,7 +32,7 @@ but creates synchronization obligations this small 100 Hz simulator does not nee
 No blocking network or database work belongs in that event loop.
 
 Use Python asyncio for orchestration and PostgreSQL ingestion. A PostgreSQL advisory
-lock will prevent two orchestrators from claiming the same instrument. One API worker
+lock prevents two orchestrators from claiming the same instrument. One API worker
 is a deliberate limit. HTTP polling can deliver the first live display; later richer
 streaming must never govern ingestion.
 
@@ -50,13 +50,15 @@ streaming must never govern ingestion.
 8. Raw samples remain immutable; filtering creates derived values.
 9. Browser disconnection does not change backend ownership.
 10. A new engine boot never silently restarts an experiment.
+11. The engine releases retained samples only after a cumulative acknowledgement
+    of the contiguous PostgreSQL commit cursor. Duplicate delivery does not advance EMA.
 
 ## Device state table
 
 | State | Start | Stop for current run | Other transition |
 | --- | --- | --- | --- |
 | IDLE | RUNNING if valid and telemetry ready | reject: no run | none |
-| RUNNING | reject: busy (identical retry returns cached result) | STOPPED after cancelling ticks and zeroing output | COMPLETED at final tick; FAULTED on control/data loss |
+| RUNNING | reject: busy (identical retry returns cached result) | STOPPED after cancelling ticks and zeroing output | COMPLETED at final tick; FAULTED on controller loss, lease expiry or retention overflow |
 | COMPLETED | RUNNING for a new run | return terminal observation unchanged | none |
 | STOPPED | RUNNING for a new run | return terminal observation unchanged | none |
 | FAULTED | reject until reset | return fault observation unchanged | explicit reset -> IDLE |
@@ -68,7 +70,17 @@ Stop requested from that confirmed observation.
 
 ## Phase boundary
 
-Phase 1 faults on control/telemetry disconnect or bounded-queue exhaustion; it does
-not claim replay of unacknowledged telemetry. Phase 2 adds cumulative post-commit
-acknowledgements, bounded same-boot retransmission and fuller restart reconciliation.
-Run records preserve partial/unknown outcomes until evidence resolves them.
+Telemetry disconnection alone permits bounded acquisition and same-boot replay.
+The engine retains at most 512 unacknowledged samples; saturation fault-stops
+without overwriting retained evidence. Control remains separate from data I/O.
+Python restores EMA from the last committed sample and acknowledges only after
+the transaction commits. A failed write cannot release engine retention.
+
+On reconnect, compare saved run and boot identity before subscribing or enabling
+Start. The same boot can drain retained evidence even after a controller fault.
+A changed boot cannot recover the old in-memory tail: preserve the committed
+prefix, retain any known terminal state, and mark unresolved execution unknown
+and recording partial. No automatic Start is permitted. A lost database ownership
+session terminates the API; its supervisor restarts it and reacquires the lock.
+
+CSV/replay and the two-device timing demonstration remain later-phase work.
