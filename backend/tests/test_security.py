@@ -36,7 +36,10 @@ def login(client, settings):
     )
 
 
-@pytest.mark.parametrize("path", ["/api/health", "/api/runs", "/api/device", "/docs", "/openapi.json"])
+@pytest.mark.parametrize(
+    "path",
+    ["/api/health", "/api/runs", "/api/device", "/api/devices", "/api/timing", "/docs", "/openapi.json"],
+)
 def test_data_and_controls_require_cookie_without_browser_challenges(protected, path):
     client, settings = protected
     response = client.get(path)

@@ -9,8 +9,12 @@ import httpx
 import psycopg
 import pytest
 from fastapi import FastAPI, HTTPException
+from psycopg.types.json import Jsonb
 from test_review import database
 
+from lab.instrument import Instrument
+from lab.models import Recipe, StartRequest, Step
+from lab.orchestrator import Orchestrator
 from lab.timing import TimingLab, aligned, estimate, timing_routes
 
 
@@ -124,5 +128,41 @@ def test_group_idempotency_partial_start_stop_and_append_only_probes():
                 await store.execute("UPDATE timing_groups SET status='collecting'")
                 await lab.recover()
                 assert (await store.rows("SELECT status FROM timing_groups"))[0]["status"] == "interrupted"
+
+    asyncio.run(check())
+
+
+@pytest.mark.skipif(not os.getenv("DATABASE_URL"), reason="Real PostgreSQL required")
+def test_reconciliation_and_command_identity_stay_on_the_owning_device():
+    async def check():
+        async with database() as store:
+            recipe_id, first, second, command_id = uuid4(), uuid4(), uuid4(), uuid4()
+            await store.execute(
+                "INSERT INTO recipe_versions(id,name,content) VALUES (%s,'fixture','{}')", (recipe_id,)
+            )
+            for device, run_id in (("sim-01", first), ("sim-02", second)):
+                await store.execute(
+                    "INSERT INTO runs(id,device_id,boot_id,recipe_id,snapshot) "
+                    "VALUES (%s,%s,'old-boot',%s,'{}')",
+                    (run_id, device, recipe_id),
+                )
+            controller = Orchestrator(store, Instrument("sim-01"))
+            controller.link.boot_id = "new-boot"
+            controller.observation = {"state": "IDLE", "run_id": ""}
+            await controller.reconcile()
+            rows = await store.rows("SELECT device_id,execution,recording FROM runs ORDER BY device_id")
+            assert rows[0] == {"device_id": "sim-01", "execution": "UNKNOWN", "recording": "partial"}
+            assert rows[1] == {"device_id": "sim-02", "execution": "PENDING", "recording": "recording"}
+            request = StartRequest(
+                command_id=command_id,
+                name="fixture",
+                recipe=Recipe(steps=[Step(setpoint=0.5, duration_ms=1000)]),
+            )
+            await store.execute(
+                "INSERT INTO commands(id,run_id,kind,payload) VALUES (%s,%s,'start',%s)",
+                (command_id, second, Jsonb(request.model_dump(mode="json"))),
+            )
+            with pytest.raises(HTTPException, match="another device"):
+                await controller.start(request)
 
     asyncio.run(check())

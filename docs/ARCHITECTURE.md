@@ -1,19 +1,24 @@
-# Architecture decisions - Phase 3
+# Architecture and ownership
 
-These decisions describe the implemented single-instrument reliability and review slices. See PROGRESS.md for
-validation results and the boundary of the current milestone.
+See PROGRESS.md for validation evidence and DECISIONS.md for consequential choices.
 
 ## Ownership and data flow
 
 - React sends operator intent and displays observations. It never confirms execution.
 - One FastAPI process validates immutable run snapshots, coordinates commands,
   ingests samples, applies the EMA filter and writes PostgreSQL transactions.
-- One separately running C++ process owns instrument execution, ticks, simulated
+- Each of two separately running C++ processes owns its instrument execution, ticks, simulated
   output, deterministic measurement generation and local fault/stop behavior.
 - PostgreSQL owns durable snapshots, commands, events and raw/derived samples.
 
 Browser -> FastAPI -> C++ control connection.
-C++ telemetry connection -> FastAPI -> PostgreSQL -> browser/review.
+C++ telemetry connections -> FastAPI -> PostgreSQL -> browser/review.
+
+Each engine has an independent Orchestrator and locks. Database transactions share
+one short-lived async lock on the single ownership connection. Run queries and
+reconciliation are scoped by device; one engine cannot finalize the other's run.
+The hosted image runs all three processes in one free service; Compose uses
+separate engine containers. Ports stay private in both environments.
 
 Monorepo: frontend/, backend/, instrument/, protocol/, tests/, docs/.
 Saved Review -> read-only FastAPI routes -> PostgreSQL. Replay never enters the
@@ -86,5 +91,8 @@ prefix, retain any known terminal state, and mark unresolved execution unknown
 and recording partial. No automatic Start is permitted. A lost database ownership
 session terminates the API; its supervisor restarts it and reacquires the lock.
 
-CSV, saved-data replay and recipe revisions are implemented in Phase 3; see
-REVIEW.md. The two-device timing demonstration remains Phase 4 work.
+CSV, saved-data replay and recipe revisions are described in REVIEW.md. TimingLab
+persists independent group Start results and immutable clock probes, then derives
+bounded alignment from observations. It waits for both bounded Start attempts
+before best-effort compensation. A failed group is never labelled an atomic
+success. See TIMING.md for clock equations, measurement limits and restart behavior.

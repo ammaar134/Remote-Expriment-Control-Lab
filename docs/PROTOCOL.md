@@ -1,6 +1,18 @@
-# Instrument protocol v1 - reliable single-device contract
+# Instrument protocol v1 - per-device contract
 
-Status: Phase 2 extension. See protocol/examples.jsonl for wire examples.
+Engine 0.4.0 retains the reliability contract and adds an optional Start clock
+model and a read-only clock probe. See protocol/examples.jsonl for wire examples.
+
+Each device uses the same contract on independent sockets. Default control/data
+ports are 9000/9001. The hosted second engine uses 9010/9011; Compose uses a
+separate private container on 9000/9001. Identity and boot checks still apply.
+
+Start optionally accepts `"clock":{"offset_ms":-750,"drift_ppm":-3000}`.
+Missing settings mean zero offset/drift; invalid settings are rejected before
+execution changes. `clock_probe` uses the normal v1 identity/request envelope
+and returns `run_id`, `device_receive_utc`, and `device_send_utc` with `ok:true`.
+Python records its own send/receive UTC and monotonic RTT. Probing does not change
+the run or clock model. See TIMING.md for equations and uncertainty.
 
 UTF-8 JSON objects terminated by LF over dedicated control and telemetry TCP
 connections. TCP may split or combine frames: parsers accumulate bytes until LF.

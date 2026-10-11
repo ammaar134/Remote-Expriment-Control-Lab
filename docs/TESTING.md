@@ -3,6 +3,36 @@
 All commands below run from the repository root unless stated otherwise.
 Do not run wire-level tests alongside the API: each engine permits one controller.
 
+## Timing and final gates
+
+`python3 tests/timing_smoke.py` acquires 520 samples from each real C++ process,
+checks distinct boots, measured drift, immutable original timestamps, derived
+alignment, idempotent group requests and separate command timing. It then stops
+both devices and, on the local URL only, stops the second Compose engine to prove
+partial-start compensation. It restarts that engine in a finally block. The test
+creates synthetic history and must run while the lab is not being used manually.
+
+`backend/tests/test_timing.py` checks known clock truth, asymmetric-delay bias,
+insufficient span, jitter, retries, UTC discontinuities, no extrapolation,
+immutable probe/request storage and group restart behavior. C++ tests verify
+clock offset/drift/reanchoring and bounds without changing logical ticks.
+Playwright's timing flow runs both real engines, switches all three time bases,
+downloads evidence, refreshes saved comparisons, checks early Stop and measures
+overflow at 1440, 1270 and 390px. `UPDATE_PHASE45_SCREENSHOTS=1` captures those
+real results under ignored `.impeccable/review` for visual review.
+
+CI builds from a clean Ubuntu 24 checkout and disposable database. It runs C++
+tests/sanitizers, real TCP/backpressure/lease tests, Python/PostgreSQL tests,
+format/types, frontend behavior/build/audit, complete API/reliability/review/timing
+flows, Chromium, then authenticated hosted-image restart/ownership tests. This
+also verifies the documented Compose setup without requiring local Docker repair.
+
+For a final Python package audit, install `pip-audit==2.10.1` in a separate tools
+environment and run `pip-audit -r backend/requirements.lock --require-hashes --disable-pip`.
+The production lock is fully pinned/hashed. Run `npm audit --audit-level=high` in
+frontend, and Gitleaks against staged changes and complete Git history. Audits
+report known advisories at their execution time, not an absence of all defects.
+
 ## C++ and actual TCP
 
 ```sh

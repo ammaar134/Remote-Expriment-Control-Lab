@@ -1,5 +1,15 @@
 # Troubleshooting
 
+- **Timing says insufficient evidence:** use a 30-second comparison and inspect
+  accepted probes, span and jitter. A short Stop or noisy window cannot establish
+  drift. Original/receipt views and full evidence remain available.
+- **Only one device started:** inspect both Start results and the compensating
+  Stop response. Restore the disconnected device, acknowledge any fault and wait
+  for recording reconciliation before a new comparison. Do not treat a missing
+  reply as proof of Stop.
+- **Comparison interrupted:** an API restart does not repeat Start. Reopen each
+  member's saved recording to inspect boot reconciliation and any missing tail.
+
 - **Repeated sign-in prompts:** the hosted app uses an in-page form, not a native
   browser dialog. Close any old dialog and reopen the live URL after an upgrade.
   Wrong credentials appear inline; wait one minute after too many attempts.

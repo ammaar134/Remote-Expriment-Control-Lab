@@ -55,7 +55,7 @@ loss. Reconnecting does not rerun the experiment. Acknowledge the instrument fau
 before the next run. History remains visible while the instrument is disconnected.
 See [troubleshooting](docs/TROUBLESHOOTING.md) for safe recovery.
 
-## What is working through Phase 3
+## Implemented workflows
 
 - Real control/telemetry TCP connections to a continuously running C++ process.
 - One state owner, deterministic logical ticks, bounded queues, confirmed zero
@@ -76,6 +76,10 @@ See [troubleshooting](docs/TROUBLESHOOTING.md) for safe recovery.
 - A console-first ink-blue, mineral and copper redesign, with an original
   pointer-responsive 3D wireframe and reduced-motion support.
 - Local-only failure demonstrations and live retention/retry diagnostics.
+- Two independent C++ devices with configurable simulated offset/drift, measured
+  round-trip estimates, original/receipt/aligned views and downloadable evidence.
+- Independent group Start results, best-effort Stop after a partial start, and
+  explicit insufficient-evidence and clock-uncertainty explanations.
 
 Enable local demonstrations with `LAB_ENABLE_FAULTS=1` on both Compose services,
 then rebuild/recreate them. See [reliability checks](docs/TESTING.md). Hosted mode
@@ -94,6 +98,7 @@ docker compose build backend-test
 docker compose run --rm backend-test sh -c 'pytest -q && ruff check . && ruff format --check . && mypy lab'
 python3 tests/api_smoke.py
 python3 tests/review_smoke.py
+python3 tests/timing_smoke.py
 ```
 
 The API smoke test creates two clearly named synthetic saved runs. For frontend
@@ -124,9 +129,13 @@ file is not evidence of a successful remote CI run; see [progress](docs/PROGRESS
 - [Signal, timing and recording](docs/DATA.md)
 - [Dependencies](docs/DEPENDENCIES.md)
 - [Current checkpoint](docs/PROGRESS.md)
+- [Clock comparison and uncertainty](docs/TIMING.md)
+- [Consequential decisions](docs/DECISIONS.md)
+- [Five-minute demo and architecture walkthrough](docs/WALKTHROUGH.md)
 
-Next: Phase 4 adds an educational two-device clock-offset/drift demonstration;
-Phase 5 completes final verification and handover. Neither is implemented yet.
+Open Timing for the two-device demonstration. Keep its default 30-second window
+to estimate drift, switch time bases, and inspect each run independently. These
+are simulated clocks; aligned curves do not establish simultaneous execution.
 See [saved-data review](docs/REVIEW.md) for recipes, exports, replay and limits.
 The [design contract](docs/DESIGN_BRIEF.md) records Impeccable and the public
 21st.dev visual reference; the sphere implementation is original.

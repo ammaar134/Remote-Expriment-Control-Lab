@@ -28,8 +28,9 @@ samples; repeated already-recorded values are checked and ignored. Filter parame
 and version belong to the immutable snapshot; raw samples are never overwritten.
 
 A sample stores logical time, source UTC, engine monotonic elapsed time and Python
-receipt UTC separately. Receipt time includes network/scheduling delay. No clock
-alignment or one-way network latency claim is made.
+receipt UTC separately. Receipt time includes network/scheduling delay and is
+not a one-way latency measurement. Timing adds simulated source clocks and a
+derived measured-alignment view without replacing originals; see TIMING.md.
 
 runs.persisted_seq is the last contiguous transactionally committed sequence.
 A terminal device observation supplies final_seq. Data is complete only when they

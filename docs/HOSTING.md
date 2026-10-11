@@ -1,11 +1,17 @@
 # Authenticated cloud deployment
 
 The hosted image serves the same React app and runs the same Python API and C++
-simulator as local Compose. Python and C++ remain separate processes using actual
+simulators as local Compose. Python and each C++ engine remain separate processes using actual
 control and telemetry TCP connections. Hosted C++ listeners bind to 127.0.0.1;
 only the HTTP service is reachable through the platform's HTTPS edge. PostgreSQL
 runs separately on Neon so container sleep, replacement and restarts preserve
 completed run history. Local Compose remains the default development path.
+
+The single free container contains two small C++ processes plus one API; no new
+Render service or paid resource is required for timing. All four engine TCP ports
+bind to loopback. A child failure replaces the container and both device boots.
+The shared host means this is a simulated clock demonstration, not evidence from
+two independently synchronized physical machines.
 
 ## Live instance
 

@@ -53,6 +53,14 @@ type Comparison = {
 type History = Pick<Comparison, "id" | "status" | "created_at">;
 type TimeBasis = "source_utc" | "received_utc" | "aligned_utc";
 const active = (status: string) => ["starting", "collecting"].includes(status);
+const statusText = (status: string) =>
+  ({
+    starting: "Starting devices independently",
+    collecting: "Collecting clock probes",
+    complete: "Observation window finished",
+    partial: "Partial comparison",
+    interrupted: "Interrupted comparison",
+  })[status] || status;
 const value = (n: number | null | undefined, decimals = 1) =>
   n == null ? "Insufficient evidence" : n.toFixed(decimals);
 const utc = (date: string) =>
@@ -298,7 +306,11 @@ export function TimingWorkspace({ selectedId }: { selectedId?: string }) {
                       min={key === "offset_ms" ? -5000 : -10000}
                       max={key === "offset_ms" ? 5000 : 10000}
                       step={1}
-                      value={c[key]}
+                      value={Number.isFinite(c[key]) ? c[key] : ""}
+                      aria-invalid={
+                        !Number.isFinite(c[key]) ||
+                        Math.abs(c[key]) > (key === "offset_ms" ? 5000 : 10000)
+                      }
                       onChange={(e) => {
                         setClocks(
                           clocks.map((item, j) =>
@@ -323,7 +335,10 @@ export function TimingWorkspace({ selectedId }: { selectedId?: string }) {
               type="number"
               min={1}
               max={60}
-              value={duration}
+              value={Number.isFinite(duration) ? duration : ""}
+              aria-invalid={
+                !Number.isInteger(duration) || duration < 1 || duration > 60
+              }
               disabled={working || busy}
               onChange={(e) => {
                 setDuration(e.target.valueAsNumber);
@@ -378,6 +393,7 @@ export function TimingWorkspace({ selectedId }: { selectedId?: string }) {
         <label>
           Saved comparison
           <select
+            aria-label="Saved comparison"
             value={selectedId || ""}
             onChange={(e) => navigate("timing", e.target.value)}
           >
@@ -387,7 +403,7 @@ export function TimingWorkspace({ selectedId }: { selectedId?: string }) {
             )}
             {history.map((h) => (
               <option key={h.id} value={h.id}>
-                {utc(h.created_at)} · {h.status}
+                {utc(h.created_at)} · {statusText(h.status)}
               </option>
             ))}
           </select>
@@ -427,7 +443,7 @@ export function TimingWorkspace({ selectedId }: { selectedId?: string }) {
               <div>
                 <h2>Clock evidence</h2>
                 <p>
-                  {readable(comparison.status)} · {utc(comparison.created_at)}
+                  {statusText(comparison.status)} · {utc(comparison.created_at)}
                 </p>
               </div>
               <a
@@ -490,7 +506,9 @@ export function TimingWorkspace({ selectedId }: { selectedId?: string }) {
                   <p>{m.estimate.reason}</p>
                   <p className="field-note">
                     {m.estimate.accepted}/{m.estimate.total} accepted probes ·{" "}
-                    {value(m.estimate.span_s)} s window
+                    {m.estimate.span_s == null
+                      ? "Window not yet measured"
+                      : `${value(m.estimate.span_s)} s window`}
                   </p>
                   {m.estimate.uncertainty_ms != null && (
                     <p className="field-note">
@@ -549,6 +567,7 @@ export function TimingWorkspace({ selectedId }: { selectedId?: string }) {
               <label>
                 Time basis
                 <select
+                  aria-label="Time basis"
                   value={basis}
                   onChange={(e) => setBasis(e.target.value as TimeBasis)}
                 >
@@ -562,6 +581,7 @@ export function TimingWorkspace({ selectedId }: { selectedId?: string }) {
               <label>
                 Display window
                 <select
+                  aria-label="Display window"
                   value={firstFive ? "five" : "all"}
                   onChange={(e) => setFirstFive(e.target.value === "five")}
                 >
