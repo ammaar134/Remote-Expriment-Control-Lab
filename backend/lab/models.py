@@ -28,12 +28,18 @@ class Recipe(StrictModel):
         return self
 
 
+class ClockSettings(StrictModel):
+    offset_ms: float = Field(default=0, ge=-5000, le=5000)
+    drift_ppm: float = Field(default=0, ge=-10000, le=10000)
+
+
 class StartRequest(StrictModel):
     command_id: UUID
     name: str = Field(min_length=1, max_length=80)
     recipe: Recipe
     alpha: float = Field(default=0.15, gt=0, le=1)
     recipe_version_id: UUID | None = None
+    clock: ClockSettings = Field(default_factory=ClockSettings)
     scenario: Literal[
         "normal", "lost_start_ack", "telemetry_reconnect", "controller_disconnect", "database_write_failure"
     ] = "normal"

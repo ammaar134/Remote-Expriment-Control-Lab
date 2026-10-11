@@ -13,16 +13,30 @@ from fastapi.staticfiles import StaticFiles
 from psycopg.types.json import Jsonb
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from .instrument import Instrument
 from .models import StartRequest, StopRequest
 from .orchestrator import Orchestrator
 from .recipes import recipe_routes
 from .review import review_routes
 from .security import AccessControls, AccessSettings
 from .store import OwnerBusyError, Store
+from .timing import TimingLab, timing_routes
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 store = Store(os.environ.get("DATABASE_URL", ""))
 orchestrator = Orchestrator(store)
+devices = {
+    "sim-01": orchestrator,
+    "sim-02": Orchestrator(
+        store,
+        Instrument(
+            "sim-02",
+            os.getenv("INSTRUMENT_2_HOST", "instrument-2"),
+            int(os.getenv("INSTRUMENT_2_PORT", "9000")),
+        ),
+    ),
+}
+timing_lab = TimingLab(store, devices)
 access = AccessSettings.from_environment()
 
 
@@ -59,8 +73,10 @@ async def own_and_run(app: FastAPI):
             logging.error('{"event":"startup_failed","error_type":"%s"}', type(exc).__name__)
             return
     try:
+        await timing_lab.recover()
         async with asyncio.TaskGroup() as tasks:
-            tasks.create_task(orchestrator.run())
+            for controller in devices.values():
+                tasks.create_task(controller.run())
             tasks.create_task(maintain_database_session())
     except Exception as exc:
         # Losing this connection also loses exclusive ownership. Shut down both
@@ -84,6 +100,10 @@ async def lifespan(app: FastAPI):
         orchestrator.task.cancel()
         with suppress(asyncio.CancelledError):
             await orchestrator.task
+        if timing_lab.task:
+            timing_lab.task.cancel()
+            with suppress(asyncio.CancelledError):
+                await timing_lab.task
         await store.close()
 
 
@@ -145,44 +165,72 @@ async def device():
     }
 
 
+@app.get("/api/devices")
+async def all_devices():
+    return [
+        {
+            "id": name,
+            "connected": controller.link.connected,
+            "recovering": controller.recovering,
+            "observation": controller.observation,
+            "boot_id": controller.link.boot_id,
+            "error": controller.error,
+        }
+        for name, controller in devices.items()
+    ]
+
+
 app.include_router(recipe_routes(store))
 app.include_router(review_routes(store))
+app.include_router(timing_routes(timing_lab))
 
 
 @app.post("/api/runs", status_code=202)
 async def start(request: StartRequest):
+    if timing_lab.task and not timing_lab.task.done():
+        raise HTTPException(409, "Wait for the clock comparison to finish before starting another run")
     return await orchestrator.start(request)
 
 
 @app.post("/api/runs/{run_id}/stop", status_code=202)
 async def stop(run_id: UUID, request: StopRequest):
-    return await orchestrator.stop(str(run_id), str(request.command_id))
+    rows = await store.rows("SELECT device_id FROM runs WHERE id=%s", (run_id,))
+    if not rows or rows[0]["device_id"] not in devices:
+        raise HTTPException(404, "Run or device not found")
+    return await devices[rows[0]["device_id"]].stop(str(run_id), str(request.command_id))
 
 
 @app.post("/api/device/reset")
-async def reset(request: StopRequest):
-    async with orchestrator.actions:
-        if await store.rows("SELECT id FROM runs WHERE recording IN ('recording','draining')"):
+async def reset(request: StopRequest, device_id: str = "sim-01"):
+    controller = devices.get(device_id)
+    if controller is None:
+        raise HTTPException(404, "Device not found")
+    async with controller.actions:
+        if await store.rows(
+            "SELECT id FROM runs WHERE device_id=%s AND recording IN ('recording','draining')", (device_id,)
+        ):
             raise HTTPException(409, "Wait for recording reconciliation before resetting the fault")
-        known = await store.rows("SELECT kind,outcome FROM commands WHERE id=%s", (request.command_id,))
+        known = await store.rows(
+            "SELECT kind,outcome,payload FROM commands WHERE id=%s", (request.command_id,)
+        )
         if known:
-            if known[0]["kind"] != "reset":
+            if known[0]["kind"] != "reset" or known[0]["payload"].get("device_id", "sim-01") != device_id:
                 raise HTTPException(409, "Command ID conflict")
             return known[0]["outcome"] or {"outcome": "unknown"}
-        if not orchestrator.link.connected:
+        if not controller.link.connected:
             raise HTTPException(503, "Instrument disconnected")
         await store.execute(
             "INSERT INTO commands(id,kind,payload) VALUES (%s,'reset',%s)",
-            (request.command_id, Jsonb({})),
+            (request.command_id, Jsonb({"device_id": device_id})),
         )
-        result = await orchestrator.link.call(
+        result = await controller.link.call(
             "reset", command_id=str(request.command_id), request_id=str(request.command_id)
         )
         await store.execute("UPDATE commands SET outcome=%s WHERE id=%s", (Jsonb(result), request.command_id))
         await store.event(None, "fault_reset_result", result)
         if not result.get("ok"):
             raise HTTPException(409, result["error"]["message"])
-        orchestrator.observation = result["status"]
+        controller.observation = result["status"]
         return result
 
 

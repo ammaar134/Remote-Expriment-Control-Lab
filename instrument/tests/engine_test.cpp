@@ -1,7 +1,19 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include "engine.hpp"
+#include "device_clock.hpp"
 using namespace lab;
+TEST_CASE("simulated clock offset, drift, reanchor and bounds") {
+  DeviceClock c;
+  c.configure({{"offset_ms", -750}, {"drift_ppm", 5000}}, 1000, 10);
+  CHECK(c.utc(10) == doctest::Approx(999.25));
+  CHECK(c.utc(30) == doctest::Approx(1019.35));
+  CHECK_THROWS_AS(c.configure({{"offset_ms", 6000}, {"drift_ppm", 0}}, 1000, 10), Rejection);
+  CHECK_THROWS_AS(c.configure({{"offset_ms", 0}, {"drift_ppm", "bad"}}, 1000, 10), Rejection);
+  CHECK(c.utc(30) == doctest::Approx(1019.35));
+  c.configure({{"offset_ms", 0}, {"drift_ppm", 0}}, 2000, 50);
+  CHECK(c.utc(51) == doctest::Approx(2001));
+}
 Json recipe() {
   return {{"sample_rate_hz", 50}, {"seed", 7}, {"steps",
     {{{"setpoint", 0.8}, {"duration_ms", 40}},

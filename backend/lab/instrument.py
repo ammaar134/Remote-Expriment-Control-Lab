@@ -1,6 +1,8 @@
 import asyncio
 import json
 import os
+import time
+from datetime import UTC, datetime
 from uuid import uuid4
 
 MAX_FRAME = 65_536
@@ -17,9 +19,10 @@ async def read_frame(reader: asyncio.StreamReader) -> dict:
 
 
 class Instrument:
-    def __init__(self):
-        self.host = os.getenv("INSTRUMENT_HOST", "instrument")
-        self.device_id = "sim-01"
+    def __init__(self, device_id: str = "sim-01", host: str | None = None, port: int = 9000):
+        self.host = host or os.getenv("INSTRUMENT_HOST", "instrument")
+        self.device_id = device_id
+        self.port = port
         self.boot_id = ""
         self.control_reader: asyncio.StreamReader | None = None
         self.control_writer: asyncio.StreamWriter | None = None
@@ -32,7 +35,7 @@ class Instrument:
 
     async def connect(self) -> dict:
         self.control_reader, self.control_writer = await asyncio.wait_for(
-            asyncio.open_connection(self.host, 9000, limit=MAX_FRAME), 3
+            asyncio.open_connection(self.host, self.port, limit=MAX_FRAME), 3
         )
         hello = await self.call("handshake")
         if not hello.get("ok"):
@@ -43,7 +46,7 @@ class Instrument:
     async def connect_telemetry(self) -> None:
         await self.close_telemetry()
         telemetry_reader, telemetry_writer = await asyncio.wait_for(
-            asyncio.open_connection(self.host, 9001, limit=MAX_FRAME), 3
+            asyncio.open_connection(self.host, self.port + 1, limit=MAX_FRAME), 3
         )
         self.telemetry_reader, self.telemetry_writer = telemetry_reader, telemetry_writer
         telemetry_writer.write(json.dumps(self.message("subscribe")).encode() + b"\n")
@@ -71,6 +74,8 @@ class Instrument:
             # Identical retry, same boot and command ID, inside the engine's 120s
             # retention horizon. Bound stale replies as well as wall-clock time.
             for attempt in range(3):
+                sent_utc = datetime.now(UTC)
+                sent_mono = time.monotonic()
                 self.control_writer.write(encoded)
                 try:
                     async with asyncio.timeout(2):
@@ -82,7 +87,17 @@ class Instrument:
                             if kind != "handshake" and response.get("boot_id") != self.boot_id:
                                 raise ConnectionError("Engine restarted")
                             if response.get("request_id") == request["request_id"]:
-                                return {**response, "attempts": attempt + 1}
+                                received_mono = time.monotonic()
+                                received_utc = datetime.now(UTC)
+                                return {
+                                    **response,
+                                    "attempts": attempt + 1,
+                                    "transport_timing": {
+                                        "sent_utc": sent_utc.isoformat(),
+                                        "received_utc": received_utc.isoformat(),
+                                        "roundtrip_s": received_mono - sent_mono,
+                                    },
+                                }
                         raise ConnectionError("Too many stale instrument responses")
                 except TimeoutError:
                     if attempt == 2:

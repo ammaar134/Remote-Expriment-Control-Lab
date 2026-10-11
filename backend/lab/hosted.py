@@ -1,4 +1,4 @@
-"""Run the two existing processes in one free container, with coupled lifetimes."""
+"""Run two engines and one API in one free container, with coupled lifetimes."""
 
 import asyncio
 import os
@@ -19,12 +19,17 @@ async def main() -> int:
     processes: list[asyncio.subprocess.Process] = []
     watchers: list[asyncio.Task] = []
     try:
-        processes.append(
-            await asyncio.create_subprocess_exec(
-                "/usr/local/bin/instrument",
-                env={"INSTRUMENT_BIND_ADDRESS": "127.0.0.1", "INSTRUMENT_ID": "sim-01"},
+        for device, port in (("sim-01", "9000"), ("sim-02", "9010")):
+            processes.append(
+                await asyncio.create_subprocess_exec(
+                    "/usr/local/bin/instrument",
+                    env={
+                        "INSTRUMENT_BIND_ADDRESS": "127.0.0.1",
+                        "INSTRUMENT_ID": device,
+                        "INSTRUMENT_CONTROL_PORT": port,
+                    },
+                )
             )
-        )
         processes.append(
             await asyncio.create_subprocess_exec(
                 sys.executable,
@@ -46,7 +51,12 @@ async def main() -> int:
                 "--proxy-headers",
                 "--forwarded-allow-ips",
                 "*",
-                env={**os.environ, "INSTRUMENT_HOST": "127.0.0.1"},
+                env={
+                    **os.environ,
+                    "INSTRUMENT_HOST": "127.0.0.1",
+                    "INSTRUMENT_2_HOST": "127.0.0.1",
+                    "INSTRUMENT_2_PORT": "9010",
+                },
             )
         )
         watchers = [asyncio.create_task(p.wait()) for p in processes]

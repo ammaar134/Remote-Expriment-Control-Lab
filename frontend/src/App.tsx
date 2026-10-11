@@ -5,6 +5,7 @@ import { RunEvidence } from "./RunEvidence";
 import { Chart } from "./Chart";
 import { RecipeLibrary } from "./RecipeLibrary";
 import { ReviewWorkspace } from "./ReviewWorkspace";
+import { TimingWorkspace } from "./TimingWorkspace";
 import { useEffect, useRef, useState } from "react";
 import {
   api,
@@ -63,7 +64,7 @@ export function App({
     window.location.hash.slice(1) || "configure",
   );
   const [routeView, selectedId] = route.split("/");
-  const view = ["configure", "monitor", "review"].includes(routeView)
+  const view = ["configure", "monitor", "review", "timing"].includes(routeView)
     ? routeView
     : "configure";
   const [device, setDevice] = useState<Device | null>(null);
@@ -101,7 +102,7 @@ export function App({
     let timer: ReturnType<typeof setTimeout>;
     setConnectionError("");
     setError("");
-    if (view === "review") return;
+    if (view === "review" || view === "timing") return;
     async function refresh() {
       try {
         const [nextDevice, nextRuns] = await Promise.all([
@@ -265,7 +266,7 @@ export function App({
           </span>
         </a>
         <nav aria-label="Main navigation">
-          {["configure", "monitor", "review"].map((item) => (
+          {["configure", "monitor", "review", "timing"].map((item) => (
             <button
               key={item}
               className={view === item ? "nav-item active" : "nav-item"}
@@ -287,11 +288,13 @@ export function App({
           </span>
           <span className={"connection " + (device?.connected ? "online" : "")}>
             <i />
-            {view === "review"
-              ? "Saved data · instrument not required"
-              : device?.connected
-                ? "Instrument connected"
-                : "Instrument disconnected"}
+            {view === "timing"
+              ? "Two independent simulated clocks"
+              : view === "review"
+                ? "Saved data · instrument not required"
+                : device?.connected
+                  ? "Instrument connected"
+                  : "Instrument disconnected"}
           </span>
           {onSignOut && (
             <button
@@ -307,22 +310,28 @@ export function App({
           <div className="page-heading">
             <div>
               <h1>
-                {view === "configure"
-                  ? "Shape the experiment."
-                  : view === "monitor"
-                    ? "Follow the response."
-                    : "Return to the evidence."}
+                {view === "timing"
+                  ? "Put time in perspective."
+                  : view === "configure"
+                    ? "Shape the experiment."
+                    : view === "monitor"
+                      ? "Follow the response."
+                      : "Return to the evidence."}
               </h1>
               <p className="subtitle">
-                {view === "configure"
-                  ? "Set a recipe. Observe the signal. Keep the evidence."
-                  : view === "monitor"
-                    ? "Live measurements, observed execution, and durable recording."
-                    : "Return to the exact configuration and measurements you recorded."}
+                {view === "timing"
+                  ? "Compare original clocks, receipt times and measured alignment."
+                  : view === "configure"
+                    ? "Set a recipe. Observe the signal. Keep the evidence."
+                    : view === "monitor"
+                      ? "Live measurements, observed execution, and durable recording."
+                      : "Return to the exact configuration and measurements you recorded."}
               </p>
             </div>
             <span className="simulation-label">
-              One instrument · Two channels
+              {view === "timing"
+                ? "Two instruments · Educational timing"
+                : "One instrument · Two channels"}
             </span>
           </div>
           {(error || connectionError) && (
@@ -330,20 +339,25 @@ export function App({
               {error || connectionError}
             </div>
           )}
-          {device?.error && !connectionError && (
-            <div className="alert" role="status">
-              {device.error}
-            </div>
-          )}
-          {device?.observation.state === "FAULTED" && (
-            <div className="alert">
-              Instrument fault:{" "}
-              {readable(device.observation.reason || "unknown")}.
-              <button className="text-button" onClick={() => void reset()}>
-                Acknowledge fault
-              </button>
-            </div>
-          )}
+          {view !== "timing" &&
+            view !== "review" &&
+            device?.error &&
+            !connectionError && (
+              <div className="alert" role="status">
+                {device.error}
+              </div>
+            )}
+          {view !== "timing" &&
+            view !== "review" &&
+            device?.observation.state === "FAULTED" && (
+              <div className="alert">
+                Instrument fault:{" "}
+                {readable(device.observation.reason || "unknown")}.
+                <button className="text-button" onClick={() => void reset()}>
+                  Acknowledge fault
+                </button>
+              </div>
+            )}
 
           {view === "configure" && (
             <div className="configure-grid">
@@ -792,6 +806,7 @@ export function App({
           )}
 
           {view === "review" && <ReviewWorkspace selectedId={selectedId} />}
+          {view === "timing" && <TimingWorkspace selectedId={selectedId} />}
           <footer className="workspace-footer">
             <span>Simulated measurements · No physical actuation</span>
             <span>Control / Observe / Understand</span>

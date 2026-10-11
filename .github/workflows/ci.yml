@@ -51,6 +51,7 @@ jobs:
           python3 tests/api_smoke.py
           python3 tests/reliability_smoke.py
           python3 tests/review_smoke.py
+          python3 tests/timing_smoke.py
       - name: Real browser flow
         working-directory: frontend
         run: |

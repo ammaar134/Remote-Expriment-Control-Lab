@@ -148,7 +148,7 @@ def main():
             "python",
             "-c",
             "import socket; host=socket.gethostbyname(socket.gethostname()); "
-            "assert all(socket.socket().connect_ex((host, port)) != 0 for port in (9000,9001))",
+            "assert all(socket.socket().connect_ex((host, port)) != 0 for port in (9000,9001,9010,9011))",
         )
         assert (
             docker(

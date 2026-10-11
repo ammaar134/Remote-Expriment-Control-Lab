@@ -1,4 +1,5 @@
 #include "engine.hpp"
+#include "device_clock.hpp"
 #include <asio.hpp>
 #include <chrono>
 #include <csignal>
@@ -18,8 +19,12 @@ constexpr std::size_t max_frame = 65536;
 constexpr std::size_t max_queue = 128;
 constexpr std::size_t retained_limit = 512;
 
-std::string utc_now() {
-  const auto now = std::chrono::system_clock::now();
+double utc_seconds() {
+  return std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+std::string format_utc(double seconds_value) {
+  const auto now = std::chrono::system_clock::time_point(std::chrono::microseconds(
+    static_cast<std::int64_t>(std::llround(seconds_value * 1000000))));
   const auto seconds = std::chrono::system_clock::to_time_t(now);
   const auto micros = std::chrono::duration_cast<std::chrono::microseconds>(
     now.time_since_epoch()).count() % 1000000;
@@ -104,6 +109,7 @@ class Server {
   asio::steady_timer tick_timer_, lease_timer_;
   std::shared_ptr<Channel> control_, telemetry_;
   lab::Engine engine_;
+  lab::DeviceClock device_clock_;
   lab::CommandCache cache_;
   std::deque<Json> retained_;
   int acknowledged_ = -1, sent_ = -1;
@@ -176,6 +182,7 @@ class Server {
       throw lab::Rejection("WRONG_INSTRUMENT", "Instrument identity mismatch");
   }
   void handle(Channel& channel, const Json& request, bool telemetry) {
+    const auto received_elapsed = elapsed();
     Json response = envelope("response");
     response["request_id"] = request.value("request_id", Json(nullptr));
     try {
@@ -191,7 +198,7 @@ class Server {
         if (!telemetry) last_control_ = Clock::now();
         response["ok"] = true;
         response["status"] = observed();
-        response["engine_version"] = "0.2.0";
+        response["engine_version"] = "0.4.0";
         channel.send(response);
         if (telemetry) { sent_ = acknowledged_; pump(); }
         return;
@@ -200,6 +207,14 @@ class Server {
       if (request.value("boot_id", "") != boot_)
         throw lab::Rejection("STALE_BOOT", "Boot identity mismatch");
       last_control_ = Clock::now();
+      if (type == "clock_probe") {
+        response["ok"] = true;
+        response["run_id"] = engine_.run_id;
+        response["device_receive_utc"] = format_utc(device_clock_.utc(received_elapsed));
+        response["device_send_utc"] = format_utc(device_clock_.utc(elapsed()));
+        channel.send(response);
+        return;
+      }
       if (type == "ack") {
         acknowledge(request);
         response["ok"] = true;
@@ -228,8 +243,13 @@ class Server {
             throw lab::Rejection("FAULTS_DISABLED", "Fault scenario not enabled");
           if (!retained_.empty())
             throw lab::Rejection("UNACKNOWLEDGED_DATA", "Previous run has uncommitted samples");
+          // Validate before Start can change state; install only after acceptance.
+          auto next_clock = device_clock_;
+          next_clock.configure(request.value("clock", Json{{"offset_ms", 0}, {"drift_ppm", 0}}),
+                               utc_seconds(), elapsed());
           engine_.start(identifier(request, "run_id"), request.at("recipe"),
                         telemetry_ && telemetry_->ready);
+          device_clock_ = next_clock;
           acknowledged_ = sent_ = -1;
           run_start_ = Clock::now();
           schedule_tick();
@@ -309,8 +329,9 @@ class Server {
       if (retained_.size() >= retained_limit) { fault("telemetry_retention_overflow"); return; }
       auto sample = engine_.tick();
       if (!sample) return;
-      (*sample)["source_utc"] = utc_now();
-      (*sample)["device_elapsed_s"] = elapsed();
+      const auto observed_elapsed = elapsed();
+      (*sample)["source_utc"] = format_utc(device_clock_.utc(observed_elapsed));
+      (*sample)["device_elapsed_s"] = observed_elapsed;
       retained_.push_back(*sample);
       pump();
       schedule_tick();
@@ -329,10 +350,11 @@ class Server {
     });
   }
  public:
-  Server(asio::io_context& io, std::string id, const asio::ip::address& address)
-    : io_(io), control_listener_(io, tcp::endpoint(address, 9000)),
-      telemetry_listener_(io, tcp::endpoint(address, 9001)),
+  Server(asio::io_context& io, std::string id, const asio::ip::address& address, unsigned short port)
+    : io_(io), control_listener_(io, tcp::endpoint(address, port)),
+      telemetry_listener_(io, tcp::endpoint(address, port + 1)),
       tick_timer_(io), lease_timer_(io), instrument_(std::move(id)) {
+    device_clock_.configure({{"offset_ms", 0}, {"drift_ppm", 0}}, utc_seconds(), elapsed());
     accept(false); accept(true); check_lease();
     std::cout << envelope("ready").dump() << std::endl;
   }
@@ -352,7 +374,11 @@ int main() {
     asio::io_context io;
     const auto* id = std::getenv("INSTRUMENT_ID");
     const auto* bind = std::getenv("INSTRUMENT_BIND_ADDRESS");
-    Server server(io, id ? id : "sim-01", asio::ip::make_address(bind ? bind : "0.0.0.0"));
+    const auto* port_text = std::getenv("INSTRUMENT_CONTROL_PORT");
+    const int port = port_text ? std::stoi(port_text) : 9000;
+    if (port < 1024 || port > 65534) throw std::runtime_error("Invalid control port");
+    Server server(io, id ? id : "sim-01", asio::ip::make_address(bind ? bind : "0.0.0.0"),
+                  static_cast<unsigned short>(port));
     asio::signal_set signals(io, SIGINT, SIGTERM);
     signals.async_wait([&](const asio::error_code&, int) { server.shutdown(); });
     io.run(); // Exactly one thread owns every engine field and callback.

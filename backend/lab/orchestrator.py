@@ -21,9 +21,9 @@ TERMINAL = {"COMPLETED", "STOPPED", "FAULTED"}
 
 
 class Orchestrator:
-    def __init__(self, store: Store):
+    def __init__(self, store: Store, link: Instrument | None = None):
         self.store = store
-        self.link = Instrument()
+        self.link = link or Instrument()
         self.actions = asyncio.Lock()
         self.observation: dict = {"state": "UNKNOWN", "run_id": "", "final_seq": -1, "output": None}
         self.active: str | None = None
@@ -85,9 +85,12 @@ class Orchestrator:
         self.active = None
         self.drain_deadline = None
         rows = await self.store.rows(
-            "SELECT * FROM runs WHERE recording IN ('recording','draining') OR "
-            "id::text=%s ORDER BY created_at",
-            (self.observation.get("run_id", "") if self.observation["state"] != "IDLE" else "",),
+            "SELECT * FROM runs WHERE device_id=%s AND (recording IN ('recording','draining') OR "
+            "id::text=%s) ORDER BY created_at",
+            (
+                self.link.device_id,
+                self.observation.get("run_id", "") if self.observation["state"] != "IDLE" else "",
+            ),
         )
         for row in rows:
             run_id = str(row["id"])
@@ -326,7 +329,15 @@ class Orchestrator:
         async with self.actions:
             known = await self.store.rows("SELECT * FROM commands WHERE id=%s", (command_id,))
             if known:
-                saved_payload = {"scenario": "normal", "recipe_version_id": None, **known[0]["payload"]}
+                owner = await self.store.rows("SELECT device_id FROM runs WHERE id=%s", (known[0]["run_id"],))
+                if not owner or owner[0]["device_id"] != self.link.device_id:
+                    raise HTTPException(409, "Command belongs to another device")
+                saved_payload = {
+                    "scenario": "normal",
+                    "recipe_version_id": None,
+                    "clock": {"offset_ms": 0, "drift_ppm": 0},
+                    **known[0]["payload"],
+                }
                 if known[0]["kind"] != "start" or saved_payload != payload:
                     raise HTTPException(409, "Command ID conflicts with an earlier request")
                 return {"run_id": str(known[0]["run_id"]), "outcome": known[0]["outcome"]}
@@ -336,7 +347,10 @@ class Orchestrator:
                 or self.observation["state"] not in {"IDLE", "STOPPED", "COMPLETED"}
             ):
                 raise HTTPException(409, "Instrument is not ready for a new run")
-            if await self.store.rows("SELECT id FROM runs WHERE recording IN ('recording','draining')"):
+            if await self.store.rows(
+                "SELECT id FROM runs WHERE device_id=%s AND recording IN ('recording','draining')",
+                (self.link.device_id,),
+            ):
                 raise HTTPException(409, "The previous recording is still being finalized")
             run_id, recipe_id = str(uuid4()), str(uuid4())
             snapshot = {
@@ -346,8 +360,9 @@ class Orchestrator:
                 "channels": [{"name": "response", "unit": "a.u."}, {"name": "reference", "unit": "a.u."}],
                 "model": {"version": "first-order-1", "tau_s": 0.5, "noise": "xorshift32-uniform-0.02"},
                 "protocol_version": 1,
-                "engine_version": "0.2.0",
-                "build": os.getenv("RENDER_GIT_COMMIT", "phase-3-local"),
+                "engine_version": "0.4.0",
+                "build": os.getenv("RENDER_GIT_COMMIT", "phase-4-5-local"),
+                "clock": payload["clock"],
                 "scenario": request.scenario,
             }
             async with self.store.transaction() as cur:
@@ -393,11 +408,17 @@ class Orchestrator:
                 command_id,
                 run_id,
                 recipe=payload["recipe"],
+                clock=payload["clock"],
                 scenario="lost_start_ack" if request.scenario == "lost_start_ack" else "normal",
             )
             return {"run_id": run_id}
 
     async def send_command(self, kind, command_id, run_id, **fields):
+        await self.store.event(
+            run_id,
+            "command_dispatch",
+            {"command_id": command_id, "kind": kind, "requested_utc": datetime.now(UTC).isoformat()},
+        )
         try:
             result = await self.link.call(
                 kind, request_id=command_id, command_id=command_id, run_id=run_id, **fields
