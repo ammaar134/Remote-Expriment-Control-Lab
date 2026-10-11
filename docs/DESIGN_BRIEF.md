@@ -38,3 +38,35 @@ review, the verdict, DESIGN.md, and every shipping raster carrying its provenanc
   was fetched or copied. InstrumentSculpture is original projected SVG geometry.
 - Manrope variable font: Google Fonts repository, SIL OFL, distributed with
   frontend/public/fonts/OFL-Manrope.txt. No third-party font requests at runtime.
+
+## Phase 4/5 implementation delta
+
+Timing is an ordinary extension of the established console. It joins Configure,
+Monitor and Review in the existing shell, with two equal device-setting groups,
+saved comparisons, paired clock-evidence tables and a shared response plot.
+Injected settings, measured estimates, independent Start outcomes and each run's
+execution/recording state remain separate. The three time views preserve original
+evidence and explicitly limit derived alignment to the measured probe window.
+
+The extension reuses Manrope, mineral surfaces, blue controls, copper emphasis,
+flat bordered panels and tabular measurements. Timing's paired groups stack at
+800px; its panel padding changes from 24px to 18px. The original SVG plot uses
+solid blue and dashed copper traces with text keys, and a responsive coordinate
+width keeps labels at 12px at the reviewed 1440px, 1270px and 390px viewports.
+These are surface adaptations, not replacements for the incumbent identity.
+The illustrative wireframe remains in Configure; no application raster was added.
+
+The Phase 5 handover records setup, architecture, failure reasoning, decisions
+and the demonstration path. The full finish review returned `disposition: ship`
+in `.impeccable/review/phase45-review.md`. Screenshot provenance and the distinction
+between deployed and candidate renders are recorded in `docs/SCREENSHOTS.md`.
+The candidate captures use locally built production assets with the authenticated
+live API and persisted observations. Exact-commit CI and the published candidate
+check were still pending at this documentation pass; release status belongs in
+`docs/PROGRESS.md`.
+
+`DESIGN.md` and `.impeccable/design.json` remain byte-for-byte unchanged. Their
+older three-view navigation, source inventory and history-only mobile description
+remain historical system-record drift, not rules for Timing to inherit. Seed
+`b85cfff1` is inherited; this extension establishes no new concept roll, approved
+comp or quality-bar evidence.

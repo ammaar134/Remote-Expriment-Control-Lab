@@ -6,7 +6,10 @@ measurements, confirm Stop, and inspect the immutable saved run.
 
 ![Configure a simulated experiment](docs/screenshots/configure.png)
 
-Phase 3 capture, with the simulator deliberately offline during saved-review verification.
+Real hosted synthetic experiment, captured during the Phase 4/5 verification.
+See [screenshot provenance](docs/SCREENSHOTS.md) and the
+[desktop](docs/screenshots/timing.png) / [mobile](docs/screenshots/timing-mobile.png)
+timing comparison.
 
 ## Try the live app
 
@@ -27,7 +30,11 @@ evidence after a changed boot; it never automatically reruns an experiment.
 Requires Docker with Linux containers and Compose, plus Python 3.12+ for the small
 configuration helper. On Windows, use `py` in place of `python3`.
 
+From a clean checkout:
+
 ```sh
+git clone https://github.com/ammaar134/Remote-Expriment-Control-Lab.git
+cd Remote-Expriment-Control-Lab
 python3 scripts/setup.py
 docker compose up -d --build --wait
 ```
@@ -37,8 +44,8 @@ take several minutes. Start with the default 30-second recipe, or shorten each s
 to two seconds for a quick demonstration.
 
 `setup.py` creates an ignored `.env` with a random database password and preserves
-existing configuration. UI/API port 8000 binds only to loopback; PostgreSQL and both
-instrument ports stay on the private Compose network. This is explicitly an
+existing configuration. UI/API port 8000 binds only to loopback; PostgreSQL and all
+four instrument ports stay on the private Compose network. This is explicitly an
 unauthenticated local demo. For an authenticated cloud instance, see
 [Render + Neon deployment](docs/HOSTING.md). A cloud deployment runs independently
 of the development computer and has its own saved history.

@@ -1,5 +1,13 @@
 # Dependencies and reproducibility
 
+Phase 4 adds no application dependency. The timestamp plot is original SVG; both
+devices run the same pinned C++ build. Final verification runs npm audit and
+pip-audit 2.10.1 against the pinned Python production lock, with full-history
+Gitleaks in CI. These check known package advisories and secret patterns; they
+are not a penetration test, container-OS vulnerability certification or proof of
+the absence of defects. Existing test-library deprecation warnings do not affect
+the production runtime. Exact release evidence is recorded in PROGRESS.md.
+
 Direct versions are pinned in frontend/package.json and backend/requirements.in.
 npm's lockfile pins the frontend graph. Production Python dependencies also have
 SHA-256 hashes; the development lock pins the full test/tool graph without hashes.

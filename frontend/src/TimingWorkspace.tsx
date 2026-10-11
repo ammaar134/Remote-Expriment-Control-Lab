@@ -87,6 +87,18 @@ export function TimingPlot({
     }),
   );
   const all = lines.flat();
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [width, setWidth] = useState(750);
+  const hasPoints = all.length > 0;
+  useEffect(() => {
+    const element = svgRef.current;
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) =>
+      setWidth(Math.max(240, entry.contentRect.width)),
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [hasPoints]);
   if (!all.length)
     return (
       <div className="empty-state">
@@ -97,12 +109,14 @@ export function TimingPlot({
     );
   const lo = Math.min(0, ...all.map((p) => p.x)),
     hi = Math.max(1, ...all.map((p) => p.x));
-  const x = (v: number) => 48 + ((v - lo) / (hi - lo)) * 670;
+  const plotWidth = width - 72;
+  const x = (v: number) => 48 + ((v - lo) / (hi - lo)) * plotWidth;
   const y = (v: number) => 224 - v * 190;
   return (
     <figure className="timing-figure">
       <svg
-        viewBox="0 0 750 278"
+        ref={svgRef}
+        viewBox={`0 0 ${width} 278`}
         role="img"
         aria-label={`Response against ${basis === "source_utc" ? "original device time" : basis === "received_utc" ? "receipt time" : "estimated aligned time"}; sim-01 solid blue, sim-02 dashed copper`}
       >
@@ -110,7 +124,7 @@ export function TimingPlot({
           <g key={v}>
             <line
               x1="48"
-              x2="718"
+              x2={width - 24}
               y1={y(v)}
               y2={y(v)}
               className="timing-gridline"
@@ -121,7 +135,12 @@ export function TimingPlot({
           </g>
         ))}
         {[0, 1, 2, 3, 4].map((i) => (
-          <text key={i} x={48 + (i * 670) / 4} y="248" textAnchor="middle">
+          <text
+            key={i}
+            x={48 + (i * plotWidth) / 4}
+            y="248"
+            textAnchor="middle"
+          >
             {(lo + ((hi - lo) * i) / 4).toFixed(1)}
           </text>
         ))}
@@ -143,7 +162,7 @@ export function TimingPlot({
         <text x="48" y="18">
           Response (a.u.)
         </text>
-        <text x="382" y="274" textAnchor="middle">
+        <text x={48 + plotWidth / 2} y="274" textAnchor="middle">
           Seconds from comparison request (UTC)
         </text>
       </svg>

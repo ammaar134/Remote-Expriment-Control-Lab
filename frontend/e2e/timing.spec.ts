@@ -71,7 +71,20 @@ test("two real clocks, saved evidence, three time bases and responsive compariso
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
-    if (process.env.UPDATE_PHASE45_SCREENSHOTS)
+    await expect
+      .poll(() =>
+        page
+          .locator(".timing-figure svg text")
+          .first()
+          .evaluate((el) => {
+            const svg = el.closest("svg")!;
+            return (
+              parseFloat(getComputedStyle(el).fontSize) * svg.getScreenCTM()!.a
+            );
+          }),
+      )
+      .toBeGreaterThanOrEqual(11);
+    if (process.env.UPDATE_PHASE45_SCREENSHOTS) {
       await page.screenshot({
         path: fileURLToPath(
           new URL(
@@ -81,6 +94,16 @@ test("two real clocks, saved evidence, three time bases and responsive compariso
         ),
         fullPage: true,
       });
+      if (width === 390)
+        await page.locator(".timing-chart").screenshot({
+          path: fileURLToPath(
+            new URL(
+              "../../.impeccable/review/phase45-timing-mobile-chart.png",
+              import.meta.url,
+            ),
+          ),
+        });
+    }
   }
   await page.reload();
   await expect(

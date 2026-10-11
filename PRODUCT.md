@@ -19,12 +19,13 @@ immutable configuration and actual measurements.
 
 ## Operating Context
 
-The working Configure/Monitor/Review console is the first screen. No introductory
+The working Configure/Monitor/Review console is the first screen; Timing extends
+it with a two-device comparison. No introductory
 showcase is needed. Local Docker and authenticated free cloud hosting are supported.
 
 ## Capabilities and Constraints
 
-One simulated instrument; bounded sample rate, duration and retention. Execution,
+Two independent simulated instruments; bounded sample rate, duration and retention. Execution,
 connection and recording completeness are separate facts. No real hardware or
 hard real-time guarantees. Phase 2 recovery and failure demonstrations remain
 available.
@@ -35,8 +36,15 @@ and companion metadata downloads, and saved-data replay with playback controls.
 Replay reads recorded evidence without issuing instrument commands or
 reconstructing missing measurements; the API and database must remain reachable.
 
-Phase 4 remains the educational two-device clock-offset/drift demonstration.
-Phase 5 remains final verification and handover. Neither is implemented yet.
+Timing reuses the C++ engine in two processes, with configurable simulated clock
+offset and drift. Independent Start results, probe evidence, original/receipt
+timestamps and derived alignment remain inspectable. Injected settings and
+measured estimates are separate; insufficient measurements are labelled. The
+comparison is educational and does not imply simultaneous hardware execution.
+
+The Phase 5 handover documents setup, architecture, failure reasoning, consequential
+decisions and a five-minute demonstration. PROGRESS.md records verification and
+release status; the operator chooses the next discussion after these two phases.
 
 ## Brand Commitments
 

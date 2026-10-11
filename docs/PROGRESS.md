@@ -1,5 +1,55 @@
 # Progress
 
+## Phases 4 and 5 — implementation and handover, 2026-10-11 Pacific/Auckland
+
+The operator explicitly authorized completing both phases together, then waiting
+for their next instruction. Earlier checkpoint pauses below are historical.
+Work branch: `codex/phase-4-5`; existing approval covers public `main` and the same
+free Render/Neon service. No additional hosting resource is required.
+
+Implemented two independent C++ engines, bounded simulated clock settings,
+persisted independent Start/Stop outcomes, append-only round-trip probes, measured
+offset/drift with insufficient-evidence handling, original/receipt/aligned views,
+saved comparison history and full timing JSON. Added final decisions, timing,
+testing, troubleshooting and walkthrough documents.
+
+The first integration run proved real two-device acquisition and partial-start
+compensation; its browser test found a selector accessible-name mismatch, fixed
+in `cfe9c5892844440a309a823d517a3316964c45d5`. Full rerun:
+https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/38099407609.
+That complete Linux run passed: C++/sanitizers/TCP, 41 Python tests, nine frontend
+unit tests, eight browser tests, real two-engine timing/failure checks and the
+authenticated hosted-image restart/ownership checks. Commit `cfe9c58` deployed
+successfully as `dep-db5dr2d9fdbs73ch2gv0` at 2026-10-11T00:53:08Z. Five live Edge
+workflows passed; the local-only fault test was correctly skipped on the public
+host. The two sign-in regressions also passed.
+
+The final interface delta keeps Timing chart labels readable at 1440, 1270 and
+390px and adds a rendered-size browser assertion. The two bounded visual passes
+and independent Impeccable finish review are complete: `disposition: ship`, with
+no material fixes outstanding. The documenter reconciled the product and surface
+brief while preserving both identity files. Captures and provenance are recorded
+in SCREENSHOTS.md; historical concept/approval evidence is not newly asserted.
+
+Final-commit CI and the published-build browser check follow this handover commit.
+Consult its matching GitHub Actions run and Render deploy record for release
+status; `.local/phase45-release.json` stores the local verification receipt without
+credentials. All five planned implementation phases are delivered. The operator
+asked to choose what comes next, so the walkthrough is available in WALKTHROUGH.md
+without imposing a new discussion gate or claiming interview readiness.
+
+Migration 003 preserved eight legacy test-branch runs, 3,516 samples and snapshot
+digest `70feac0713ba5c8bf93cfd7e19767e52`. Production baseline before release:
+11 runs, 3,995 samples, zero unfinished, snapshot digest
+`3f4722480fdbcf7056462c3281beb6cd` at 2026-10-11T00:40:25Z.
+After deployment and browser workflows, all original runs, samples and that digest
+were unchanged. The database held 18 runs / 5,545 samples / zero unfinished runs
+and two comparisons / zero active comparisons; application error logs were empty.
+Native Python/type/format checks, frontend build/unit tests, Edge sign-in regressions,
+npm audit, Python production-lock audit and full-history Gitleaks passed. Docker
+Desktop remains unavailable locally; the clean Linux CI runner supplies complete
+C++/container validation. No destructive Docker repair was performed.
+
 ## Phase 3 implementation checkpoint — 2026-10-11, Pacific/Auckland
 
 The operator confirmed the sign-in correction works and authorized Phase 3.

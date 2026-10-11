@@ -6,3 +6,5 @@
 {"v":1,"type":"stop","instrument_id":"sim-01","boot_id":"observed-boot-id","request_id":"stop-1","command_id":"stop-1","run_id":"run-1"}
 {"v":1,"type":"response","instrument_id":"sim-01","boot_id":"observed-boot-id","request_id":"stop-1","ok":true,"applied":true,"status":{"state":"STOPPED","run_id":"run-1","final_seq":0,"output":0.0,"reason":"operator_stop","telemetry_ready":true,"queued_frames":0}}
 {"v":1,"type":"response","instrument_id":"sim-01","boot_id":"observed-boot-id","request_id":"late-stop","ok":false,"error":{"code":"STALE_RUN","message":"Stop does not target the current run"}}
+{"v":1,"type":"clock_probe","instrument_id":"sim-02","boot_id":"second-boot-id","request_id":"probe-1"}
+{"v":1,"type":"response","instrument_id":"sim-02","boot_id":"second-boot-id","request_id":"probe-1","ok":true,"run_id":"run-2","device_receive_utc":"2026-01-01T00:00:01.220000Z","device_send_utc":"2026-01-01T00:00:01.220020Z"}

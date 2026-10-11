@@ -100,6 +100,12 @@ test("configure -> real live samples -> refresh -> completion -> saved review, t
     });
   await page.goto("/#configure");
   await expect(page.getByLabel("Recipe name", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Start experiment/ }),
+  ).toBeEnabled();
+  await expect(
+    page.getByRole("option", { name: "Loading recipes…", exact: true }),
+  ).toHaveCount(0);
   await expect
     .poll(() =>
       page.evaluate(
