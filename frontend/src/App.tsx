@@ -1,21 +1,21 @@
+import { readable, navigate } from "./format";
+import { Status } from "./RunStatus";
+export { Status } from "./RunStatus";
+import { RunEvidence } from "./RunEvidence";
+import { Chart } from "./Chart";
+import { RecipeLibrary } from "./RecipeLibrary";
+import { ReviewWorkspace } from "./ReviewWorkspace";
 import { useEffect, useRef, useState } from "react";
 import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
   api,
+  recipeKey,
   type Device,
   type Recipe,
   type Run,
   type Sample,
   type Start,
+  type RecipeVersion,
+  type ChartData,
 } from "./api";
 import {
   InstrumentSculpture,
@@ -32,48 +32,6 @@ const defaults: Recipe = {
     { setpoint: 0.35, duration_ms: 10000 },
   ],
 };
-const readable = (text: string) => text.toLowerCase().replaceAll("_", " ");
-const time = (value: string) =>
-  new Date(value).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-function navigate(view: string, id?: string) {
-  window.location.hash = view + (id ? "/" + id : "");
-}
-
-export function Status({
-  state,
-  recording,
-  finalSeq,
-  persistedSeq,
-}: {
-  state: string;
-  recording?: string;
-  finalSeq?: number | null;
-  persistedSeq?: number;
-}) {
-  const missing =
-    recording === "partial" &&
-    typeof finalSeq === "number" &&
-    typeof persistedSeq === "number"
-      ? Math.max(0, finalSeq - persistedSeq)
-      : null;
-  return (
-    <div className="status-pair">
-      <span className={"pill " + state.toLowerCase()}>{readable(state)}</span>
-      {recording && (
-        <span className={"pill recording-" + recording}>
-          Data: {recording === "draining" ? "finalizing" : readable(recording)}
-          {missing !== null &&
-            missing > 0 &&
-            ` · ${missing} ${missing === 1 ? "sample" : "samples"} missing`}
-        </span>
-      )}
-    </div>
-  );
-}
 export function StopControl({
   device,
   busy,
@@ -97,90 +55,6 @@ export function StopControl({
     </button>
   );
 }
-function SignalChart({ samples }: { samples: Sample[] }) {
-  // Display at most 1000 points, retaining a recent tail. Raw records stay in PostgreSQL.
-  const stride = Math.max(1, Math.ceil(samples.length / 1000));
-  const display = samples.filter(
-    (_, index) => index % stride === 0 || index === samples.length - 1,
-  );
-  return (
-    <div
-      className="chart"
-      role="img"
-      aria-label={
-        samples.length
-          ? "Raw response, filtered response and reference over logical time"
-          : "Chart awaiting recorded samples"
-      }
-    >
-      {samples.length ? (
-        <ResponsiveContainer width="100%" height={290} minWidth={0}>
-          <LineChart
-            data={display}
-            margin={{ top: 12, right: 16, left: 0, bottom: 4 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 5"
-              vertical={false}
-              stroke="#d9dce3"
-            />
-            <XAxis
-              dataKey="logical_s"
-              type="number"
-              domain={[0, "dataMax"]}
-              tickFormatter={(v) => Number(Number(v).toFixed(2)) + "s"}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              domain={[-0.1, 1.1]}
-              width={42}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              labelFormatter={(v) =>
-                "Logical time: " + Number(v).toFixed(2) + " s"
-              }
-            />
-            <Legend iconType="plainline" />
-            <Line
-              dataKey="response"
-              name="Raw response (a.u.)"
-              stroke="#5e719f"
-              dot={false}
-              strokeWidth={1}
-              isAnimationActive={false}
-            />
-            <Line
-              dataKey="filtered"
-              name="EMA (a.u.)"
-              stroke="#263e7d"
-              dot={false}
-              strokeWidth={2.5}
-              isAnimationActive={false}
-            />
-            <Line
-              dataKey="reference"
-              name="Reference (a.u.)"
-              stroke="#b35531"
-              dot={false}
-              strokeWidth={1.3}
-              isAnimationActive={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      ) : (
-        <div className="chart-empty">
-          <WaveMark />
-          <strong>Ready for a response</strong>
-          <p>Recorded measurements will appear here when a run starts.</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function App({
   onSignOut,
   signingOut = false,
@@ -188,7 +62,10 @@ export function App({
   const [route, setRoute] = useState(
     window.location.hash.slice(1) || "configure",
   );
-  const [view, selectedId] = route.split("/");
+  const [routeView, selectedId] = route.split("/");
+  const view = ["configure", "monitor", "review"].includes(routeView)
+    ? routeView
+    : "configure";
   const [device, setDevice] = useState<Device | null>(null);
   const [runs, setRuns] = useState<Run[]>([]);
   const [run, setRun] = useState<Run | null>(null);
@@ -196,6 +73,10 @@ export function App({
   const [recipe, setRecipe] = useState<Recipe>(defaults);
   const [name, setName] = useState("Stepped response");
   const [alpha, setAlpha] = useState(0.15);
+  const [recipeVersion, setRecipeVersion] = useState<RecipeVersion | null>(
+    null,
+  );
+  const [chartWindow, setChartWindow] = useState("all");
   const [scenario, setScenario] = useState("normal");
   const [error, setError] = useState("");
   const [connectionError, setConnectionError] = useState("");
@@ -203,7 +84,12 @@ export function App({
   const [stopping, setStopping] = useState(false);
   const pending = useRef<Start | null>(null);
   const activeId =
-    selectedId || (view === "monitor" ? device?.observation.run_id : undefined);
+    view === "monitor" ? selectedId || device?.observation.run_id : undefined;
+  const recipeChanged =
+    recipeVersion &&
+    (recipeVersion.name !== name.trim() ||
+      recipeVersion.alpha !== alpha ||
+      recipeKey(recipeVersion.recipe) !== recipeKey(recipe));
 
   useEffect(() => {
     const change = () => setRoute(window.location.hash.slice(1) || "configure");
@@ -213,6 +99,9 @@ export function App({
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
+    setConnectionError("");
+    setError("");
+    if (view === "review") return;
     async function refresh() {
       try {
         const [nextDevice, nextRuns] = await Promise.all([
@@ -243,31 +132,34 @@ export function App({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, []);
+  }, [view]);
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
-    let after = -1;
+    let finished = false;
     setRun(null);
     setSamples([]);
     if (!activeId) return;
     async function refresh() {
       try {
-        const [detail, points] = await Promise.all([
-          api<Run>("/runs/" + activeId),
-          api<Sample[]>("/runs/" + activeId + "/samples?after=" + after),
-        ]);
+        const detail = await api<Run>("/runs/" + activeId);
+        const end =
+          (detail.persisted_seq + 1) /
+          (detail.snapshot?.recipe.sample_rate_hz || 50);
+        const from =
+          chartWindow === "all" ? 0 : Math.max(0, end - Number(chartWindow));
+        const chart = await api<ChartData>(
+          "/runs/" + activeId + "/chart?from_s=" + from,
+        );
         if (!cancelled) {
           setRun(detail);
-          if (points.length) {
-            after = points[points.length - 1].seq;
-            setSamples((old) => [...old, ...points].slice(-6000));
-          }
+          setSamples(chart.points);
+          finished = ["complete", "partial"].includes(detail.recording);
         }
       } catch (err) {
         if (!cancelled) setError((err as Error).message);
       } finally {
-        if (!cancelled) timer = setTimeout(refresh, 600);
+        if (!cancelled && !finished) timer = setTimeout(refresh, 600);
       }
     }
     void refresh();
@@ -275,7 +167,7 @@ export function App({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [activeId]);
+  }, [activeId, chartWindow]);
 
   const duration = recipe.steps.reduce(
     (sum, step) => sum + step.duration_ms / 1000,
@@ -313,6 +205,7 @@ export function App({
       recipe,
       alpha,
       scenario,
+      recipe_version_id: recipeVersion?.id || null,
     };
     try {
       const result = await api<{ run_id: string }>("/runs", pending.current);
@@ -394,9 +287,11 @@ export function App({
           </span>
           <span className={"connection " + (device?.connected ? "online" : "")}>
             <i />
-            {device?.connected
-              ? "Instrument connected"
-              : "Instrument disconnected"}
+            {view === "review"
+              ? "Saved data · instrument not required"
+              : device?.connected
+                ? "Instrument connected"
+                : "Instrument disconnected"}
           </span>
           {onSignOut && (
             <button
@@ -463,6 +358,8 @@ export function App({
                   Recipe name
                   <input
                     value={name}
+                    aria-invalid={!name.trim()}
+                    aria-describedby={!name.trim() ? "name-error" : undefined}
                     maxLength={80}
                     onChange={(e) => {
                       setName(e.target.value);
@@ -470,6 +367,25 @@ export function App({
                     }}
                   />
                 </label>
+                {!name.trim() && (
+                  <p id="name-error" className="field-error">
+                    Give this recipe a name.
+                  </p>
+                )}
+                <RecipeLibrary
+                  name={name}
+                  recipe={recipe}
+                  alpha={alpha}
+                  selected={recipeVersion}
+                  valid={valid}
+                  onLoad={(version) => {
+                    setRecipeVersion(version);
+                    setName(version.name);
+                    setRecipe(version.recipe);
+                    setAlpha(version.alpha);
+                    pending.current = null;
+                  }}
+                />
                 <div className="field-row">
                   <label>
                     Sample rate
@@ -497,6 +413,12 @@ export function App({
                       min="1"
                       max="2147483647"
                       value={recipe.seed}
+                      aria-invalid={
+                        !Number.isInteger(recipe.seed) ||
+                        recipe.seed < 1 ||
+                        recipe.seed > 2147483647
+                      }
+                      aria-describedby="seed-note"
                       onChange={(e) => {
                         setRecipe({ ...recipe, seed: +e.target.value });
                         pending.current = null;
@@ -504,6 +426,10 @@ export function App({
                     />
                   </label>
                 </div>
+                <p className="field-note" id="seed-note">
+                  Seed: a whole number from 1 to 2,147,483,647. The same recipe
+                  and seed reproduce the simulated noise.
+                </p>
                 <div className="steps-heading">
                   <h3>Step sequence</h3>
                   <span>Normalized input · 0–1</span>
@@ -526,6 +452,12 @@ export function App({
                       max="1"
                       step="0.05"
                       value={step.setpoint}
+                      aria-invalid={
+                        !Number.isFinite(step.setpoint) ||
+                        step.setpoint < 0 ||
+                        step.setpoint > 1
+                      }
+                      aria-describedby="steps-note"
                       onChange={(e) =>
                         updateStep(index, "setpoint", +e.target.value)
                       }
@@ -537,6 +469,11 @@ export function App({
                       max="60"
                       step="0.1"
                       value={step.duration_ms / 1000}
+                      aria-invalid={
+                        step.duration_ms <= 0 ||
+                        step.duration_ms % (1000 / recipe.sample_rate_hz) !== 0
+                      }
+                      aria-describedby="steps-note"
                       onChange={(e) =>
                         updateStep(
                           index,
@@ -589,6 +526,11 @@ export function App({
                 >
                   Add a step
                 </button>
+                <p className="field-note" id="steps-note">
+                  Use setpoints from 0 to 1 and positive durations aligned to{" "}
+                  {1000 / recipe.sample_rate_hz} ms samples. Total duration must
+                  be 60 seconds or less.
+                </p>
                 <label className="filter-label">
                   EMA smoothing <span>{alpha.toFixed(2)}</span>
                   <input
@@ -609,6 +551,14 @@ export function App({
               </section>
               <div className="configure-side">
                 <section className="instrument-card">
+                  <label className="instrument-picker">
+                    Instrument
+                    <select value="sim-01" onChange={() => undefined}>
+                      <option value="sim-01">
+                        Response simulator · sim-01
+                      </option>
+                    </select>
+                  </label>
                   <div className="instrument-top">
                     <h2>Response simulator</h2>
                     <span className="mini-label">SIM-01</span>
@@ -672,10 +622,16 @@ export function App({
                       ready.
                     </p>
                   )}
+                  {recipeChanged && (
+                    <p className="validation">
+                      Save a new recipe version before starting with these
+                      changes.
+                    </p>
+                  )}
                   <button
                     className="primary-button"
                     onClick={() => void start()}
-                    disabled={!valid || !ready || starting}
+                    disabled={!valid || !ready || starting || !!recipeChanged}
                   >
                     {starting
                       ? "Starting…"
@@ -732,10 +688,11 @@ export function App({
             <>
               <div className="monitor-bar">
                 <div>
-                  <h2>Observed instrument</h2>
+                  <h2>{run ? "Recorded execution" : "Observed instrument"}</h2>
                   <Status
                     state={
-                      device?.connected ? device.observation.state : "UNKNOWN"
+                      run?.execution ||
+                      (device?.connected ? device.observation.state : "UNKNOWN")
                     }
                     recording={run?.recording}
                     finalSeq={run?.final_seq}
@@ -743,7 +700,11 @@ export function App({
                   />
                 </div>
                 <StopControl
-                  device={device}
+                  device={
+                    activeId && device?.observation.run_id !== activeId
+                      ? null
+                      : device
+                  }
                   busy={stopping}
                   onStop={() => void stop()}
                 />
@@ -768,7 +729,18 @@ export function App({
                   </div>
                   <span className="mini-label">RAW + FILTERED</span>
                 </div>
-                <SignalChart samples={samples} />
+                <label className="chart-window">
+                  Chart window
+                  <select
+                    value={chartWindow}
+                    onChange={(event) => setChartWindow(event.target.value)}
+                  >
+                    <option value="all">Full run</option>
+                    <option value="10">Last 10 seconds</option>
+                    <option value="5">Last 5 seconds</option>
+                  </select>
+                </label>
+                <Chart samples={samples} />
                 <div className="signal-footer">
                   <span>
                     {(run?.persisted_seq ?? -1) + 1} committed samples
@@ -819,80 +791,7 @@ export function App({
             </>
           )}
 
-          {view === "review" && (
-            <div className="review-grid">
-              <section className="panel history">
-                <div className="panel-title">
-                  <h2>Recorded runs</h2>
-                  <span className="count">{runs.length}</span>
-                </div>
-                {!runs.length && (
-                  <p className="empty-note">
-                    Your first saved run will appear here.
-                  </p>
-                )}
-                {runs.map((item) => (
-                  <button
-                    className={
-                      "history-item " + (activeId === item.id ? "selected" : "")
-                    }
-                    key={item.id}
-                    onClick={() => navigate("review", item.id)}
-                  >
-                    <span>
-                      <strong>{item.name}</strong>
-                      <small>
-                        {new Date(item.created_at).toLocaleDateString()} ·{" "}
-                        {time(item.created_at)}
-                      </small>
-                    </span>
-                    <Status
-                      state={item.execution}
-                      recording={item.recording}
-                      finalSeq={item.final_seq}
-                      persistedSeq={item.persisted_seq}
-                    />
-                  </button>
-                ))}
-              </section>
-              <div>
-                {run ? (
-                  <>
-                    <section className="panel signal-panel">
-                      <div className="signal-heading">
-                        <div>
-                          <h2>{run.snapshot?.name}</h2>
-                        </div>
-                        <Status
-                          state={run.execution}
-                          recording={run.recording}
-                          finalSeq={run.final_seq}
-                          persistedSeq={run.persisted_seq}
-                        />
-                      </div>
-                      <SignalChart samples={samples} />
-                      <div className="signal-footer">
-                        <span>{samples.length} saved samples</span>
-                        <span>Seed {run.snapshot?.recipe.seed}</span>
-                        <span>EMA α {run.snapshot?.filter.alpha}</span>
-                      </div>
-                    </section>
-                    <RunEvidence run={run} />
-                  </>
-                ) : (
-                  <section className="panel review-empty">
-                    <WaveMark />
-                    <h2>A record worth keeping.</h2>
-                    <p>
-                      Select a run to inspect its measurements,
-                      <br />
-                      configuration and event history.
-                    </p>
-                  </section>
-                )}
-              </div>
-            </div>
-          )}
+          {view === "review" && <ReviewWorkspace selectedId={selectedId} />}
           <footer className="workspace-footer">
             <span>Simulated measurements · No physical actuation</span>
             <span>Control / Observe / Understand</span>
@@ -900,85 +799,5 @@ export function App({
         </div>
       </main>
     </div>
-  );
-}
-function RunEvidence({ run }: { run: Run }) {
-  return (
-    <section className="panel evidence">
-      <div className="panel-title">
-        <h2>Run evidence</h2>
-        <span className="mini-label">IMMUTABLE CONFIGURATION</span>
-      </div>
-      {run.recording === "partial" && (
-        <div className="alert">
-          Recording is incomplete: {readable(run.reason)}. Missing measurements
-          are not reconstructed.
-        </div>
-      )}
-      <div className="evidence-grid">
-        <div>
-          <h3>Provenance</h3>
-          <dl>
-            <dt>Run ID</dt>
-            <dd className="mono">{run.id}</dd>
-            <dt>Recipe</dt>
-            <dd>
-              {run.snapshot?.recipe.steps.length} steps ·{" "}
-              {run.snapshot?.recipe.sample_rate_hz} Hz
-            </dd>
-            <dt>Scenario</dt>
-            <dd>{readable(run.snapshot?.scenario || "normal")}</dd>
-            <dt>Random seed</dt>
-            <dd>{run.snapshot?.recipe.seed}</dd>
-            <dt>Filter</dt>
-            <dd>
-              {run.snapshot?.filter.version} · α {run.snapshot?.filter.alpha}
-            </dd>
-            <dt>Outcome</dt>
-            <dd>
-              {readable(run.execution)} /{" "}
-              {readable(run.reason || "awaiting observation")}
-            </dd>
-            <dt>Recording</dt>
-            <dd>
-              {run.persisted_seq + 1} committed · final sequence{" "}
-              {run.final_seq ?? "unknown"}
-            </dd>
-          </dl>
-          {run.snapshot && (
-            <table className="saved-recipe">
-              <caption>Saved step sequence</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Step</th>
-                  <th scope="col">Setpoint (a.u.)</th>
-                  <th scope="col">Duration (s)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {run.snapshot.recipe.steps.map((step, index) => (
-                  <tr key={index}>
-                    <th scope="row">{index + 1}</th>
-                    <td>{step.setpoint}</td>
-                    <td>{step.duration_ms / 1000}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-        <div>
-          <h3>Event timeline</h3>
-          <ol className="timeline">
-            {run.events?.map((event) => (
-              <li key={event.id}>
-                <span>{readable(event.kind)}</span>
-                <time>{time(event.created_at)}</time>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
-    </section>
   );
 }

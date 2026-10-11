@@ -1,6 +1,6 @@
-# Architecture decisions - Phase 2
+# Architecture decisions - Phase 3
 
-These decisions describe the implemented single-instrument reliability slice. See PROGRESS.md for
+These decisions describe the implemented single-instrument reliability and review slices. See PROGRESS.md for
 validation results and the boundary of the current milestone.
 
 ## Ownership and data flow
@@ -16,6 +16,9 @@ Browser -> FastAPI -> C++ control connection.
 C++ telemetry connection -> FastAPI -> PostgreSQL -> browser/review.
 
 Monorepo: frontend/, backend/, instrument/, protocol/, tests/, docs/.
+Saved Review -> read-only FastAPI routes -> PostgreSQL. Replay never enters the
+orchestrator command path. Recipe revisions are separate append-only rows; runs
+keep both a version reference and their own immutable snapshot. See REVIEW.md.
 Docker Compose supplies a Linux C++ toolchain and a real PostgreSQL service on Windows
 or Linux. Only the UI/API are published, on loopback.
 
@@ -83,4 +86,5 @@ prefix, retain any known terminal state, and mark unresolved execution unknown
 and recording partial. No automatic Start is permitted. A lost database ownership
 session terminates the API; its supervisor restarts it and reacquires the lock.
 
-CSV/replay and the two-device timing demonstration remain later-phase work.
+CSV, saved-data replay and recipe revisions are implemented in Phase 3; see
+REVIEW.md. The two-device timing demonstration remains Phase 4 work.

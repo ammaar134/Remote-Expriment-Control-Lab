@@ -71,6 +71,27 @@ database. It checks authentication/origin guards, idle session renewal, exclusiv
 ownership handoff, actual ownership-session loss, preserved history after container
 replacement and shutdown on child failure. No cloud credentials are required.
 
+## Phase 3 review checks
+
+`python3 tests/review_smoke.py` uses the local Compose application. It acquires a
+real 200-sample run from a saved recipe revision, rejects a mutated revision, stops
+only the project's instrument, then checks full CSV values, metadata, bounded charts
+and replay with no new commands. A `finally` block restarts the instrument. Do not
+run this disruptive local test against a cloud service or an operator's active run.
+
+`backend/tests/test_review.py` applies the upgrade to real legacy PostgreSQL rows,
+then checks concurrent duplicate saves, stale edits, immutability, filters, exact
+CSV floats/formula escaping, missing tails, empty runs and engine-independent replay.
+Use a direct connection for these tests because fixtures use session search paths.
+The pure downsampling test retains extrema across all three channels at 6,000 samples.
+
+`frontend/e2e/review.spec.ts` covers saved revisions/Start provenance, search,
+CSV/metadata downloads and keyboard replay controls. `LAB_EXPECT_OFFLINE=1` asserts
+that the simulator is actually absent for its saved-review test. Use
+`UPDATE_PHASE3_SCREENSHOTS=1` to save review/configure/replay captures in the ignored
+`.impeccable/review` directory. The reviewed sizes are 1440, 1270 and 390 pixels.
+The replay unit test checks cursor timing, pause, speed, seek and restart.
+
 ## Secret checks
 
 Before committing, scan the staged diff with Gitleaks. Before the first push, scan

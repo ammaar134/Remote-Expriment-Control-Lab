@@ -26,8 +26,17 @@ showcase is needed. Local Docker and authenticated free cloud hosting are suppor
 
 One simulated instrument; bounded sample rate, duration and retention. Execution,
 connection and recording completeness are separate facts. No real hardware or
-hard real-time guarantees. Phase 2 adds recovery and failure demonstrations;
-export, replay and two-device timing belong to later phases.
+hard real-time guarantees. Phase 2 recovery and failure demonstrations remain
+available.
+
+Phase 3 adds immutable saved recipe versions, filtered and paginated run history,
+bounded chart windows, whole-recording statistics, provenance, full-resolution CSV
+and companion metadata downloads, and saved-data replay with playback controls.
+Replay reads recorded evidence without issuing instrument commands or
+reconstructing missing measurements; the API and database must remain reachable.
+
+Phase 4 remains the educational two-device clock-offset/drift demonstration.
+Phase 5 remains final verification and handover. Neither is implemented yet.
 
 ## Brand Commitments
 

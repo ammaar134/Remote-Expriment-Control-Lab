@@ -6,6 +6,8 @@ measurements, confirm Stop, and inspect the immutable saved run.
 
 ![Configure a simulated experiment](docs/screenshots/configure.png)
 
+Phase 3 capture, with the simulator deliberately offline during saved-review verification.
+
 ## Try the live app
 
 Open [Remote Experiment Control Lab](https://remote-experiment-control-lab.onrender.com).
@@ -53,7 +55,7 @@ loss. Reconnecting does not rerun the experiment. Acknowledge the instrument fau
 before the next run. History remains visible while the instrument is disconnected.
 See [troubleshooting](docs/TROUBLESHOOTING.md) for safe recovery.
 
-## What is working through Phase 2
+## What is working through Phase 3
 
 - Real control/telemetry TCP connections to a continuously running C++ process.
 - One state owner, deterministic logical ticks, bounded queues, confirmed zero
@@ -61,7 +63,11 @@ See [troubleshooting](docs/TROUBLESHOOTING.md) for safe recovery.
 - Bounded command deduplication and explicit conflicting-command rejection.
 - PostgreSQL migrations, one controlling API worker, immutable snapshots/raw data,
   ordered EMA processing, event history and final-sequence recording reconciliation.
-- Configure, Monitor and basic saved Review, including browser refresh during runs.
+- Configure, Monitor and saved Review, including browser refresh during runs.
+- Reusable immutable recipe versions, with conflicting edits rejected instead of overwritten.
+- Searchable run history, full provenance, exact CSV and companion metadata downloads.
+- Saved-observation replay with play/pause, seek, speed and restart, independent of the engine.
+- Bounded chart windows that preserve channel extrema; statistics use every saved sample.
 - Tests using real sockets, PostgreSQL, the complete API path and a real browser.
 - Post-commit cumulative acknowledgements, bounded 512-sample retention and
   same-boot retransmission without changing original samples or timestamps.
@@ -87,6 +93,7 @@ From the repository root, with Docker running:
 docker compose build backend-test
 docker compose run --rm backend-test sh -c 'pytest -q && ruff check . && ruff format --check . && mypy lab'
 python3 tests/api_smoke.py
+python3 tests/review_smoke.py
 ```
 
 The API smoke test creates two clearly named synthetic saved runs. For frontend
@@ -118,8 +125,9 @@ file is not evidence of a successful remote CI run; see [progress](docs/PROGRESS
 - [Dependencies](docs/DEPENDENCIES.md)
 - [Current checkpoint](docs/PROGRESS.md)
 
-Next phases add CSV/replay, fuller recipe management and an educational
-two-device clock-offset/drift demonstration. They are not advertised as complete.
+Next: Phase 4 adds an educational two-device clock-offset/drift demonstration;
+Phase 5 completes final verification and handover. Neither is implemented yet.
+See [saved-data review](docs/REVIEW.md) for recipes, exports, replay and limits.
 The [design contract](docs/DESIGN_BRIEF.md) records Impeccable and the public
 21st.dev visual reference; the sphere implementation is original.
 No repository license has been selected.

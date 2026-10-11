@@ -20,5 +20,8 @@ and the C++ source repositories declared in CMake. Keep those notices when
 redistributing third-party code or binaries. Project source licensing remains
 undecided; no first-party LICENSE has been selected.
 
-No third-party photographs, fonts, icons or purchased assets are included. The UI
-uses system fonts, text symbols and real screenshots of synthetic runs.
+The UI self-hosts Manrope under the included SIL Open Font License notice in
+`frontend/public/fonts/OFL-Manrope.txt`. Icons and the projected wireframe are
+original SVG; screenshots show real synthetic runs. No third-party photographs or
+purchased assets are included. The public 21st.dev page is a visual reference only,
+as documented in DESIGN_BRIEF.md; no account-locked implementation was copied.

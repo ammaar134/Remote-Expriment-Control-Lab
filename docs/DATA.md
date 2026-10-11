@@ -44,6 +44,9 @@ and seeds EMA from the stored filtered value before processing new samples.
 A changed boot loses volatile retention; the saved prefix remains immutable and
 the recording is marked partial when its final sequence cannot be established.
 
-The browser fetches at most 6,000 samples/run, retaining at most that count in memory.
-Plots show at most about 1,000 points; full raw values stay in PostgreSQL. Server-side
-extrema-preserving downsampling and full-dataset analysis are later-phase work.
+Runs contain at most 6,000 samples. Monitor and Review request bounded chart windows
+with up to 800 points by default, preserving each channel's bucket extrema and the
+window endpoints. Full raw values stay in PostgreSQL. CSV exports and whole-recording
+statistics always use all committed samples, independently of the chart window.
+Saved-data replay loads the bounded full recording and advances a browser cursor;
+it never resimulates missing measurements. See REVIEW.md for timing and export details.

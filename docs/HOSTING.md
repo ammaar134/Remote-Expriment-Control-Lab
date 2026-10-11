@@ -20,7 +20,7 @@ Verified on 2026-10-10 (Pacific/Auckland) against deployed application commit
 acquisition, 100 ordered durable samples, confirmed Stop, live browser refresh,
 saved Review, and desktop/mobile layouts. Four synthetic runs start the cloud
 history. A real redeploy preserved their 462 samples and recording statuses.
-Automatic deployment is off. See PROGRESS.md for the latest Phase 2 release evidence.
+Automatic deployment is off. See PROGRESS.md for the latest release evidence.
 
 ## Free hosting choice
 
@@ -110,6 +110,12 @@ public entry point. Do not publish its raw HTTP port directly to the internet or
 place it behind a proxy that passes untrusted forwarding headers unchanged.
 
 ## Restart and deployment behavior
+
+Phase 3 adds an append-only recipe-lineage migration. It was tested against an
+isolated clone of the existing cloud history, preserving eight runs and all 3,516
+samples with an identical snapshot digest. The normal application migration runner
+applies it once under the existing single-owner lock; no production rows are erased
+or overwritten. Export and replay use the same authenticated API and database.
 
 Automatic deploys are disabled. Deploy manually while no experiment is active;
 changing code should not unexpectedly interrupt an operator's run.

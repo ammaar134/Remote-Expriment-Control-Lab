@@ -38,6 +38,7 @@ async def database():
         await store.connection.execute(
             psycopg.sql.SQL("DROP SCHEMA {} CASCADE").format(psycopg.sql.Identifier(schema))
         )
+        await store.connection.execute("RESET search_path")
         await store.close()
 
 
@@ -162,6 +163,18 @@ def test_upgrade_recipe_conflicts_exports_and_replay_without_an_instrument():
                 assert len((await client.get("/api/runs")).json()) == 1
                 assert (await client.get("/api/runs/" + str(uuid4()) + "/replay")).status_code == 404
                 assert (await client.get(prefix + "/chart?max_points=6000")).status_code == 422
+                await store.execute(
+                    "INSERT INTO events(run_id,kind,detail) SELECT %s,'synthetic_page','{}' "
+                    "FROM generate_series(1,201)",
+                    (run_id,),
+                )
+                page_one = (await client.get(prefix + "/events")).json()
+                assert len(page_one["events"]) == 200 and page_one["more"]
+                page_two = (
+                    await client.get(prefix + "/events", params={"after": page_one["events"][-1]["id"]})
+                ).json()
+                assert len(page_two["events"]) == 2 and not page_two["more"]
+                assert page_two["events"][0]["id"] > page_one["events"][-1]["id"]
                 # Empty stopped recordings export a header and have no invented statistics.
                 await store.execute(
                     "UPDATE runs SET persisted_seq=-1,final_seq=-1,execution='STOPPED',"

@@ -1,20 +1,43 @@
 # Progress
 
-## Phase 3 in progress — 2026-10-11, Pacific/Auckland
+## Phase 3 implementation checkpoint — 2026-10-11, Pacific/Auckland
 
 The operator confirmed the sign-in correction works and authorized Phase 3.
 Branch: `codex/phase-3`. Existing approval covers `main` and the free Render/Neon deployment.
 Phase 4 remains paused until the Phase 3 checkpoint.
 
-Backend slice: immutable reusable recipe revisions, filtered history, bounded
+Implemented: immutable reusable recipe revisions, filtered history, bounded
 extrema-preserving chart queries, whole-recording statistics, exact CSV/metadata
-exports, and read-only saved-observation replay. Python checks: 34 tests passed
-against an isolated Neon verification branch; Ruff and mypy passed. The native
-frontend build passes. Docker Desktop has an unrelated stale socket startup
-failure; complete container and C++ checks will run in Linux CI.
+exports, and read-only saved-observation replay. Configure/Monitor/Review expose
+these workflows with field validation, event paging and responsive layouts.
 
-Pending: operator UI completion, browser workflows/visual review, migration
-verification against cloned history, exact-commit CI, deployment and checkpoint.
+Core commit `f9e6bcba3a2d9ffea10fee281a2f724c58939968` passed complete Linux CI:
+https://github.com/ammaar134/Remote-Expriment-Control-Lab/actions/runs/38096861797.
+This includes C++/socket/sanitizer, Python/PostgreSQL, browser and hosted-image gates.
+The migration preserved eight runs, 3,516 samples and an identical snapshot digest
+on an isolated Neon branch. No production history was altered during development.
+
+Local checks: 34 Python tests, Ruff/mypy, production UI build, nine frontend unit
+tests, formatting and dependency audit passed. Native Edge exported CSV/metadata
+and exercised replay with the engine absent, asserting no control requests or live
+device polling. Review was inspected at 1440, 1270 and 390px; Configure at desktop
+and mobile; replay at desktop. Impeccable's full review found one documentation
+correction and no material UI defect in that capture set. Its subsequent verdict
+scored the documentation fix resolved and returned `ship` at that scope. The
+documenter reconciled product/implementation records while preserving identity.
+No new quality card/comp or original historical roll evidence is claimed.
+
+Docker Desktop has an unrelated stale socket startup failure. Local checks used
+native tools and the isolated Neon branch; complete container checks run in Linux
+CI. The release procedure requires this interface commit's full CI and live browser
+checks, beyond the earlier core result. Consult the matching Actions run and Render
+deploy record for release status; `.local/phase3-release.json` stores the local
+verification receipt without credentials. Phase 4 remains paused for discussion.
+
+Checkpoint: `ReplayPlayer` pauses by removing its timer and moves only the saved-data
+cursor. The unique `(family_id, revision)` constraint and unique parent prevent
+ambiguous recipe revisions; append-only triggers prevent evidence rewrites.
+Question: why keep full raw samples when a chart shows fewer points and an EMA?
 
 ## Phase 2 checkpoint — 2026-10-10, Pacific/Auckland
 
@@ -41,7 +64,7 @@ details. Public static assets contain no experiment data; API routes and control
 remain protected. Local mode still needs no login. Login attempts are limited,
 and a separate random signing key lets a 12-character password be used without
 using that password directly as the session key. Actual credentials stay solely
-in Render settings. No database migration or Phase 3 work is included.
+in Render settings. That correction included no database migration or Phase 3 work.
 
 Regression checks cover 16 seconds of interrupted/slow typing, wrong-password
 feedback, no polling while signed out, session expiry, a manual connection retry,
@@ -140,6 +163,7 @@ Retention is volatile and bounded: 512 samples is 5.12 seconds at 100 Hz. It can
 promise lossless recovery from arbitrary outages or a replaced engine process.
 This is one simulator and one controlling API worker, with best-effort scheduling.
 No physical equipment or hardware emergency stop is implemented. Free hosting may
-sleep or restart. CSV/replay, fuller recipe management, richer analysis and two-
-device timing belong to later phases. The ~607 kB uncompressed chart bundle still
-has a build size warning. Repository license remains undecided.
+sleep or restart. Phase 3 now supplies CSV/replay, recipe versions and recording
+statistics; two-device timing remains Phase 4. The chart loads separately from
+the main UI, removing the earlier bundle-size warning. Repository license remains
+undecided. See REVIEW.md for saved-data bounds and timing semantics.
