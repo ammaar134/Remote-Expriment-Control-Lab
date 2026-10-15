@@ -29,3 +29,34 @@ text. The 1270px and mobile chart-detail review evidence remain in ignored
 Impeccable's inherited identity contract and third-party reference provenance are
 in DESIGN_BRIEF.md. The app's only supplied font is self-hosted Manrope; the graph,
 icons and wireframe are original code. No new raster asset is shipped in the app.
+
+## Published-app walkthrough — 2026-10-15 UTC
+
+The additional `*-live.jpg` files were captured directly in cloud Chrome from
+https://remote-experiment-control-lab.onrender.com/ with the published frontend
+and its authenticated live API. No local asset substitution, generated mockups,
+credentials or personal information are included. The original Phase 4/5 PNGs
+and their provenance above are unchanged.
+
+- `configure-live.jpg`: settled Configure, instrument connected, default recipe
+  ready to start; 640 × 757 capture.
+- `monitor-live.jpg`: live acquisition detail at approximately 10.92 logical
+  seconds, with 530 committed samples, the second step transition and recording
+  diagnostics; 1170 × 751 viewport capture. The page header is outside this view.
+- `review-live.jpg`: completed saved Review, 1,500 samples and final sequence 1499;
+  1170 × 2390 full-page capture.
+- `replay-live.jpg`: the same saved run, paused at 20.00 / 30.00 seconds with
+  1,000 / 1,500 observations shown; 1170 × 2212 full-page capture. Replay sends no
+  instrument commands.
+
+Run `4f225c7b-71d1-4d5c-89ac-680d045dabba` was created at
+`2026-10-15T07:27:20.211Z`. Its visible provenance identifies build
+`658372309b242fc20f20ac6c321467ad1c070c62`, instrument `sim-01`, normal scenario,
+seed 7, 50 Hz, three 10-second steps (0.25, 0.8, 0.35) and EMA alpha 0.15.
+The run completed naturally and recording was verified complete before Review
+and Replay captures. The browser displays local event times in UTC−07:00;
+the explicit Created (UTC) field is the authoritative timestamp above.
+
+This documentation pass exercised Configure → Start → live Monitor → completed
+Review → paused Replay. It did not run failure demonstrations, modify application
+code or hosting settings, or claim a new full regression-suite pass.

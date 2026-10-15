@@ -25,6 +25,35 @@ container replacement. Platform restarts can interrupt active experiments. Phase
 recovers retained samples on the same engine boot and explicitly marks missing
 evidence after a changed boot; it never automatically reruns an experiment.
 
+## From live signal to saved evidence
+
+1. **Configure:** choose the step sequence, sample rate and EMA smoothing, then
+   Start. The [current Configure capture](docs/screenshots/configure-live.jpg)
+   shows the default 30-second, 50 Hz synthetic recipe.
+2. **Monitor:** watch raw and filtered measurements arrive alongside recording
+   diagnostics. Execution and durable recording are shown separately.
+
+![Live Monitor showing the first step transition and recording diagnostics](docs/screenshots/monitor-live.jpg)
+
+*Captured during acquisition: the signal has reached the second setpoint while
+samples are still being committed. Final sequence is not yet known.*
+
+3. **Review:** select the completed run to inspect its saved configuration,
+   measurements and event history, or export CSV and companion metadata.
+
+![Saved Review showing the completed 1500-sample synthetic experiment](docs/screenshots/review-live.jpg)
+
+*The completed recording contains all 1,500 samples. The chart preserves extrema
+while the summary statistics use the full recording.*
+
+4. **Replay:** use [saved-observation replay](docs/screenshots/replay-live.jpg)
+   to seek, pause or change speed without sending instrument commands. The capture
+   is paused at 20 seconds, showing 1,000 of the 1,500 saved samples.
+
+These captures are from the published app on 2026-10-15, using one ordinary
+simulator run. See [capture provenance](docs/SCREENSHOTS.md) and the
+[five-minute walkthrough](docs/WALKTHROUGH.md) for more detail.
+
 ## Run locally
 
 Requires Docker with Linux containers and Compose, plus Python 3.12+ for the small
